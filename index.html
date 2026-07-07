@@ -337,8 +337,14 @@ var Module=typeof Module!="undefined"?Module:{};var ENVIRONMENT_IS_WEB=!!globalT
   <div id="page-catalogue" class="page show">
     <div class="page-header">
       <div class="page-title">Catalogue</div>
-      <button class="btn btn-outline btn-sm" id="manage-cats-btn">Catégories</button>
+      <div style="display:flex;gap:.4rem">
+        <button class="btn btn-outline btn-sm" id="manage-cats-btn">Catégories</button>
+      </div>
     </div>
+    <button class="btn btn-outline btn-sm btn-full" id="manage-magasins-btn" style="margin-bottom:.7rem;justify-content:space-between;padding:.55rem .8rem">
+      <span style="display:flex;align-items:center;gap:.4rem;color:var(--text2);font-weight:600">🏬 Magasin actif : <span id="active-magasin-label" style="color:var(--accent)">Aucun</span></span>
+      <span style="color:var(--text3);font-size:.75rem">Changer</span>
+    </button>
     <div class="card">
       <div class="frow">
         <input id="c-nom" placeholder="Ajouter un produit" style="flex:2">
@@ -501,6 +507,22 @@ var Module=typeof Module!="undefined"?Module:{};var ENVIRONMENT_IS_WEB=!!globalT
   </div>
 </div>
 
+<div id="magasins-modal" class="overlay">
+  <div class="modal">
+    <div class="modal-drag"></div>
+    <div class="modal-title">Mes magasins</div>
+    <p style="color:var(--text2);font-size:.82rem;margin-bottom:1.1rem">Le magasin actif sert à mémoriser un prix par magasin. Touchez un magasin pour l'activer.</p>
+    <div class="frow" style="margin-bottom:1rem">
+      <input id="new-magasin-name" placeholder="Ex: Super U Thouaré-sur-Loire">
+      <button class="btn btn-primary btn-sm" id="add-magasin-btn" style="flex:none">Ajouter</button>
+    </div>
+    <div id="magasins-list" style="max-height:320px;overflow-y:auto"></div>
+    <div style="margin-top:1rem">
+      <button class="btn btn-outline btn-full" id="close-magasins-modal">Fermer</button>
+    </div>
+  </div>
+</div>
+
 <div id="confirm-modal" class="overlay">
   <div class="modal">
     <div class="modal-drag"></div>
@@ -550,7 +572,10 @@ var Module=typeof Module!="undefined"?Module:{};var ENVIRONMENT_IS_WEB=!!globalT
       </div>
       <div class="frow" style="margin-bottom:.7rem">
         <select id="scan-r-cat" style="flex:1"></select>
-        <input type="number" step="0.01" min="0" id="scan-r-prix" placeholder="Prix vu en magasin (€)" style="flex:1">
+      </div>
+      <div class="frow" style="margin-bottom:.7rem">
+        <select id="scan-r-magasin" style="flex:1"></select>
+        <input type="number" step="0.01" min="0" id="scan-r-prix" placeholder="Prix vu (€)" style="flex:1">
       </div>
       <div style="display:flex;gap:.5rem">
         <button class="btn btn-outline btn-full" id="scan-rescan-btn">Rescanner</button>
@@ -586,8 +611,10 @@ const db = getFirestore(app);
 
 let UID = null, activeListeId = null;
 let catalogue = [], listes = [], dossiers = [], articles = [];
+let magasins = [];
+let activeMagasinId = localStorage.getItem('activeMagasinId') || null;
 let selectedIds = new Set();
-let unsubCat = null, unsubListes = null, unsubDoss = null, unsubArt = null, unsubCategories = null;
+let unsubCat = null, unsubListes = null, unsubDoss = null, unsubArt = null, unsubCategories = null, unsubMagasins = null;
 
 const DEFAULT_CATEGORIES = [
   {id:'legumes',label:'🥦 Légumes'},{id:'fruits',label:'🍎 Fruits'},
@@ -649,6 +676,7 @@ document.getElementById('confirm-yes').onclick = () => { if(confirmCallback) con
 document.getElementById('confirm-no').onclick = () => closeModal('confirm-modal');
 document.getElementById('close-listes-modal').onclick = () => closeModal('listes-modal');
 document.getElementById('close-cats-modal').onclick = () => closeModal('categories-modal');
+document.getElementById('close-magasins-modal').onclick = () => closeModal('magasins-modal');
 
 function confirmAction(title, msg, callback) {
   document.getElementById('confirm-title').textContent = title;
@@ -658,7 +686,7 @@ function confirmAction(title, msg, callback) {
 }
 
 // Fermer modal en cliquant l'overlay
-['categories-modal','confirm-modal','listes-modal'].forEach(id => {
+['categories-modal','confirm-modal','listes-modal','magasins-modal'].forEach(id => {
   document.getElementById(id).addEventListener('click', e => {
     if(e.target.id === id) closeModal(id);
   });
@@ -799,9 +827,14 @@ function renderCatalogue() {
     html += `<div class="cat-group"><div class="cat-header"><span class="cat-label">${cat.label}</span><div class="cat-line"></div></div>`;
     for(const p of items){
       const isSel = selectedIds.has(p.id);
+      const prixMagasin = (activeMagasinId && p.prixParMagasin && p.prixParMagasin[activeMagasinId] && p.prixParMagasin[activeMagasinId].prix != null)
+        ? p.prixParMagasin[activeMagasinId].prix : null;
+      const prixLine = prixMagasin != null
+        ? `<div style="font-size:.72rem;color:var(--accent);font-weight:600">${prixMagasin.toFixed(2)} €</div>`
+        : (p.prixVu != null ? `<div style="font-size:.72rem;color:var(--text3)">≈ ${p.prixVu.toFixed(2)} € (autre magasin)</div>` : '');
       html += `<div class="prod-row">
         <div class="chk ${isSel?'on':''}" onclick="toggleSel('${p.id}')"><svg viewBox="0 0 13 13" fill="none" stroke="white" stroke-width="2.5"><path d="M2 7L5 10L11 3"/></svg></div>
-        <span class="prod-nom">${p.nom}</span>
+        <div class="prod-nom">${p.nom}${prixLine}</div>
         <button class="btn btn-outline btn-sm" style="color:var(--accent);border-color:var(--accent-light)" onclick="addFast(event,'${p.id}','${esc(p.nom)}','${p.categorie}')">+ Liste</button>
         <button class="btn btn-icon btn-sm" style="color:var(--red)" onclick="delProduit('${p.id}','${esc(p.nom)}')">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/></svg>
@@ -962,6 +995,88 @@ function updateAllCategorySelects() {
   ['c-cat','d-man-cat'].forEach(id => { const el = document.getElementById(id); if(el) el.innerHTML = opts; });
 }
 
+// --- Magasins ---
+window.openMagasinsManager = function() {
+  renderMagasinsList();
+  openModal('magasins-modal');
+};
+function renderMagasinsList() {
+  const el = document.getElementById('magasins-list');
+  if(!magasins.length){
+    el.innerHTML = '<div class="empty" style="padding:1.2rem"><p>Aucun magasin pour l\'instant. Ajoutez-en un ci-dessus (ex: "Super U Thouaré-sur-Loire").</p></div>';
+    return;
+  }
+  el.innerHTML = magasins.map(m => {
+    const isActive = m.id === activeMagasinId;
+    return `<div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.5rem;padding:.5rem .6rem;border-radius:10px;background:${isActive?'var(--accent-light)':'transparent'}">
+      <div style="flex:1;cursor:pointer;font-weight:${isActive?'700':'500'};font-size:.88rem;color:${isActive?'var(--accent)':'var(--text)'}" onclick="selectMagasin('${m.id}')">
+        ${isActive?'✓ ':''}${m.nom}
+      </div>
+      <button class="btn btn-icon btn-sm" style="color:var(--red)" onclick="deleteMagasin('${m.id}','${esc(m.nom)}')">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/></svg>
+      </button>
+    </div>`;
+  }).join('');
+}
+window.addMagasin = async function() {
+  const nom = document.getElementById('new-magasin-name').value.trim();
+  if(!nom){toast('Entrez un nom de magasin');return;}
+  if(magasins.some(m => m.nom.toLowerCase() === nom.toLowerCase())){toast('Ce magasin existe déjà');return;}
+  const ref = await addDoc(collection(db,'users',UID,'magasins'),{nom,createdAt:serverTimestamp()});
+  document.getElementById('new-magasin-name').value = '';
+  toast('Magasin ajouté');
+  // Si c'est le premier magasin créé, on l'active automatiquement.
+  if(!activeMagasinId) window.selectMagasin(ref.id);
+};
+window.selectMagasin = function(id) {
+  activeMagasinId = id;
+  localStorage.setItem('activeMagasinId', id);
+  updateActiveMagasinLabel();
+  renderMagasinsList();
+  renderCatalogue();
+  closeModal('magasins-modal');
+  const m = magasins.find(x => x.id === id);
+  if(m) toast('🏬 Magasin actif : ' + m.nom);
+};
+window.deleteMagasin = async function(id, nom) {
+  confirmAction('Supprimer', `Supprimer "${nom}" ? Les prix déjà enregistrés pour ce magasin resteront dans l'historique des produits mais ne seront plus modifiables depuis ce magasin.`, async () => {
+    await deleteDoc(doc(db,'users',UID,'magasins',id));
+    if(activeMagasinId === id){
+      activeMagasinId = null;
+      localStorage.removeItem('activeMagasinId');
+      updateActiveMagasinLabel();
+      renderCatalogue();
+    }
+    toast('Magasin supprimé');
+  });
+};
+function updateActiveMagasinLabel() {
+  const label = document.getElementById('active-magasin-label');
+  if(!label) return;
+  const m = magasins.find(x => x.id === activeMagasinId);
+  label.textContent = m ? m.nom : 'Aucun';
+}
+function updateScanMagasinSelect() {
+  const sel = document.getElementById('scan-r-magasin');
+  if(!sel) return;
+  const opts = ['<option value="">Sans magasin précis</option>']
+    .concat(magasins.map(m => `<option value="${m.id}"${m.id===activeMagasinId?' selected':''}>${m.nom}</option>`));
+  sel.innerHTML = opts.join('');
+}
+function initMagasinsListener() {
+  if(unsubMagasins) unsubMagasins();
+  unsubMagasins = onSnapshot(collection(db,'users',UID,'magasins'), snap => {
+    magasins = snap.docs.map(d => ({id:d.id,...d.data()}));
+    if(activeMagasinId && !magasins.some(m => m.id === activeMagasinId)){
+      activeMagasinId = null;
+      localStorage.removeItem('activeMagasinId');
+    }
+    updateActiveMagasinLabel();
+    updateScanMagasinSelect();
+    renderCatalogue();
+  });
+}
+
 // --- Détail liste ---
 function renderDetailHeader() {
   const liste = listes.find(l => l.id === activeListeId);
@@ -1026,7 +1141,9 @@ window.renderAvailableProducts = function() {
 
 window.addToCurrentList = async function(id, nom, cat) {
   const prod = catalogue.find(p => p.id === id);
-  const prix = (prod && prod.prixVu != null) ? prod.prixVu : null;
+  const prixMag = (prod && activeMagasinId && prod.prixParMagasin && prod.prixParMagasin[activeMagasinId] && prod.prixParMagasin[activeMagasinId].prix != null)
+    ? prod.prixParMagasin[activeMagasinId].prix : null;
+  const prix = prixMag != null ? prixMag : ((prod && prod.prixVu != null) ? prod.prixVu : null);
   await addDoc(collection(db,'users',UID,'listes',activeListeId,'articles'),{nom,categorie:cat,quantite:1,unite:'',coche:false,prix});
   toast(`"${nom}" ajouté`);
 };
@@ -1057,12 +1174,17 @@ window.changeUnit = async function(id, unit) {
 window.changePrix = async function(id, value) {
   const prix = value === '' ? null : parseFloat(value);
   await updateDoc(doc(db,'users',UID,'listes',activeListeId,'articles',id),{prix: (prix==null||isNaN(prix)) ? null : prix});
-  // Mémorise ce prix comme "dernier prix connu" du produit dans le catalogue, pour préremplir la prochaine fois.
+  // Mémorise ce prix comme "dernier prix connu" du produit dans le catalogue (et pour le magasin actif si défini),
+  // pour préremplir la prochaine fois.
   if(prix!=null && !isNaN(prix)){
     const art = articles.find(a => a.id === id);
     if(art){
       const prod = catalogue.find(p => p.nom.toLowerCase() === art.nom.toLowerCase());
-      if(prod) await updateDoc(doc(db,'users',UID,'catalogue',prod.id),{prixVu: prix, prixDate: serverTimestamp()});
+      if(prod){
+        const fields = {prixVu: prix, prixDate: serverTimestamp()};
+        if(activeMagasinId) fields['prixParMagasin.' + activeMagasinId] = {prix, date: serverTimestamp()};
+        await updateDoc(doc(db,'users',UID,'catalogue',prod.id),fields);
+      }
     }
   }
 };
@@ -1203,9 +1325,10 @@ function startListeners() {
     updateDossierSelects();
   });
   initCategoriesListener();
+  initMagasinsListener();
 }
 function stopListeners() {
-  [unsubCat,unsubListes,unsubDoss,unsubArt,unsubCategories].forEach(u => u && u());
+  [unsubCat,unsubListes,unsubDoss,unsubArt,unsubCategories,unsubMagasins].forEach(u => u && u());
 }
 
 // --- Auth ---
@@ -1256,6 +1379,7 @@ document.getElementById('auth-btn').onclick = async () => {
   }
 };
 document.getElementById('i-pwd').addEventListener('keydown', e => { if(e.key==='Enter') document.getElementById('auth-btn').click(); });
+document.getElementById('new-magasin-name').addEventListener('keydown', e => { if(e.key==='Enter') window.addMagasin(); });
 
 onAuthStateChanged(auth, async user => {
   // Masquer le spinner Google dans tous les cas
@@ -1292,6 +1416,8 @@ document.getElementById('d-search').oninput = () => renderAvailableProducts();
 document.getElementById('f-statut').onchange = () => renderListes();
 document.getElementById('f-dossier').onchange = () => renderListes();
 document.getElementById('manage-cats-btn').onclick = () => window.openCategoriesManager();
+document.getElementById('manage-magasins-btn').onclick = () => window.openMagasinsManager();
+document.getElementById('add-magasin-btn').onclick = () => window.addMagasin();
 document.getElementById('add-cat-btn').onclick = () => window.addCategory();
 document.getElementById('update-nom-btn').onclick = () => window.updateNom();
 document.getElementById('update-pwd-btn').onclick = () => window.updatePwd();
@@ -1484,10 +1610,20 @@ function renderScanResult(ean, p){
   const catSel = document.getElementById('scan-r-cat');
   catSel.innerHTML = categories.map(c => `<option value="${c.id}"${c.id===catGuess?' selected':''}>${c.label}</option>`).join('');
 
-  // Préremplit le prix avec le dernier prix connu pour ce produit, si on l'a déjà vu.
+  updateScanMagasinSelect();
+
+  // Préremplit le prix avec le prix connu pour le magasin sélectionné (magasin actif par défaut),
+  // sinon avec le dernier prix connu tous magasins confondus.
   const prixInput = document.getElementById('scan-r-prix');
   const existingProd = catalogue.find(prod => prod.ean === ean || prod.nom.toLowerCase() === nom.toLowerCase());
-  prixInput.value = (existingProd && existingProd.prixVu != null) ? existingProd.prixVu : '';
+  function fillPrixForMagasin(){
+    const magSel = document.getElementById('scan-r-magasin').value;
+    const prixMag = (existingProd && magSel && existingProd.prixParMagasin && existingProd.prixParMagasin[magSel] && existingProd.prixParMagasin[magSel].prix != null)
+      ? existingProd.prixParMagasin[magSel].prix : null;
+    prixInput.value = prixMag != null ? prixMag : ((existingProd && existingProd.prixVu != null) ? existingProd.prixVu : '');
+  }
+  fillPrixForMagasin();
+  document.getElementById('scan-r-magasin').onchange = fillPrixForMagasin;
 
   scanResultCard.style.display = 'block';
 }
@@ -1502,23 +1638,33 @@ document.getElementById('scan-confirm-btn').onclick = async () => {
   const cat = document.getElementById('scan-r-cat').value;
   const prixVal = document.getElementById('scan-r-prix').value;
   const prix = prixVal === '' ? null : parseFloat(prixVal);
+  const magSel = document.getElementById('scan-r-magasin').value; // magasin choisi pour ce prix (peut être vide)
   const extra = {
     ean: scanLastProduct.ean,
     marque: scanLastProduct.marque || '',
     imageUrl: scanLastProduct.imageUrl || '',
     nutriscore: scanLastProduct.nutriscore || ''
   };
+  const prixOk = prix!=null && !isNaN(prix);
+  // Champs de prix à écrire : prixVu = dernier prix vu tous magasins confondus (fallback),
+  // prixParMagasin.<id> = prix spécifique au magasin choisi (mémoire par magasin).
+  function prixFields(){
+    const fields = {prixVu: prix, prixDate: serverTimestamp()};
+    if(magSel) fields['prixParMagasin.' + magSel] = {prix, date: serverTimestamp()};
+    return fields;
+  }
 
   if (scanCtx === 'catalogue'){
     const existingProd = catalogue.find(prod => prod.nom.toLowerCase() === scanLastProduct.nom.toLowerCase());
     if (existingProd){
-      if(prix!=null && !isNaN(prix)) await updateDoc(doc(db,'users',UID,'catalogue',existingProd.id),{prixVu:prix, prixDate:serverTimestamp(), ...extra});
+      if(prixOk) await updateDoc(doc(db,'users',UID,'catalogue',existingProd.id),{...prixFields(), ...extra});
       toast('Ce produit existe déjà dans le catalogue (prix mis à jour)');
     } else {
       await addDoc(collection(db,'users',UID,'catalogue'), {
         nom: scanLastProduct.nom, categorie: cat, createdAt: serverTimestamp(),
-        prixVu: (prix!=null && !isNaN(prix)) ? prix : null,
-        prixDate: (prix!=null && !isNaN(prix)) ? serverTimestamp() : null,
+        prixVu: prixOk ? prix : null,
+        prixDate: prixOk ? serverTimestamp() : null,
+        prixParMagasin: (prixOk && magSel) ? {[magSel]: {prix, date: serverTimestamp()}} : {},
         ...extra
       });
       toast('✅ "' + scanLastProduct.nom + '" ajouté au catalogue');
@@ -1526,14 +1672,19 @@ document.getElementById('scan-confirm-btn').onclick = async () => {
   } else if (scanCtx === 'detail'){
     await addDoc(collection(db,'users',UID,'listes',activeListeId,'articles'), {
       nom: scanLastProduct.nom, categorie: cat, quantite:1, unite:'', coche:false,
-      prix: (prix!=null && !isNaN(prix)) ? prix : null,
+      prix: prixOk ? prix : null,
       ...extra
     });
-    // Mémorise aussi ce prix comme dernier prix connu dans le catalogue (créé si besoin).
-    if(prix!=null && !isNaN(prix)){
+    // Mémorise aussi ce prix comme prix connu (par magasin + fallback global) dans le catalogue (créé si besoin).
+    if(prixOk){
       const existingProd = catalogue.find(prod => prod.nom.toLowerCase() === scanLastProduct.nom.toLowerCase());
-      if(existingProd) await updateDoc(doc(db,'users',UID,'catalogue',existingProd.id),{prixVu:prix, prixDate:serverTimestamp()});
-      else await addDoc(collection(db,'users',UID,'catalogue'),{nom:scanLastProduct.nom, categorie:cat, createdAt:serverTimestamp(), prixVu:prix, prixDate:serverTimestamp(), ...extra});
+      if(existingProd) await updateDoc(doc(db,'users',UID,'catalogue',existingProd.id),prixFields());
+      else await addDoc(collection(db,'users',UID,'catalogue'),{
+        nom:scanLastProduct.nom, categorie:cat, createdAt:serverTimestamp(),
+        prixVu:prix, prixDate:serverTimestamp(),
+        prixParMagasin: magSel ? {[magSel]: {prix, date: serverTimestamp()}} : {},
+        ...extra
+      });
     }
     toast('✅ "' + scanLastProduct.nom + '" ajouté à la liste');
   }
