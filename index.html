@@ -491,6 +491,28 @@ var Module=typeof Module!="undefined"?Module:{};var ENVIRONMENT_IS_WEB=!!globalT
 </div>
 
 <!-- MODALS -->
+<div id="prix-modal" class="overlay">
+  <div class="modal">
+    <div class="modal-drag"></div>
+    <div class="modal-title" id="prix-modal-titre">Prix du produit</div>
+    <p style="color:var(--text2);font-size:.82rem;margin-bottom:1rem" id="prix-modal-magasin"></p>
+    <div class="section-title" style="margin-top:0">Type de prix</div>
+    <div class="frow" style="margin-bottom:.8rem">
+      <select id="prix-modal-unite" style="flex:1">
+        <option value="piece">À la pièce / à l'unité</option>
+        <option value="kg">Au poids (prix au kg)</option>
+        <option value="l">Au volume (prix au litre)</option>
+      </select>
+    </div>
+    <div class="section-title" style="margin-top:0">Prix</div>
+    <input type="number" step="0.01" min="0" id="prix-modal-valeur" placeholder="Ex: 3.50" style="margin-bottom:1.1rem">
+    <div style="display:flex;gap:.5rem">
+      <button class="btn btn-outline btn-full" id="close-prix-modal">Annuler</button>
+      <button class="btn btn-primary btn-full" id="save-prix-modal">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
 <div id="categories-modal" class="overlay">
   <div class="modal">
     <div class="modal-drag"></div>
@@ -575,6 +597,13 @@ var Module=typeof Module!="undefined"?Module:{};var ENVIRONMENT_IS_WEB=!!globalT
       </div>
       <div class="frow" style="margin-bottom:.7rem">
         <select id="scan-r-magasin" style="flex:1"></select>
+      </div>
+      <div class="frow" style="margin-bottom:.7rem">
+        <select id="scan-r-uniteprix" style="flex:1">
+          <option value="piece">À la pièce</option>
+          <option value="kg">Au poids (€/kg)</option>
+          <option value="l">Au volume (€/L)</option>
+        </select>
         <input type="number" step="0.01" min="0" id="scan-r-prix" placeholder="Prix vu (€)" style="flex:1">
       </div>
       <div style="display:flex;gap:.5rem">
@@ -686,7 +715,7 @@ function confirmAction(title, msg, callback) {
 }
 
 // Fermer modal en cliquant l'overlay
-['categories-modal','confirm-modal','listes-modal','magasins-modal'].forEach(id => {
+['categories-modal','confirm-modal','listes-modal','magasins-modal','prix-modal'].forEach(id => {
   document.getElementById(id).addEventListener('click', e => {
     if(e.target.id === id) closeModal(id);
   });
@@ -765,6 +794,40 @@ window.delProduit = function(id, nom) {
   });
 };
 
+// --- Édition de prix (à la pièce / au poids / au volume) depuis le catalogue ---
+let prixModalProdId = null;
+window.openPrixModal = function(id) {
+  const p = catalogue.find(x => x.id === id);
+  if(!p) return;
+  prixModalProdId = id;
+  document.getElementById('prix-modal-titre').textContent = 'Prix — ' + p.nom;
+  const m = magasins.find(x => x.id === activeMagasinId);
+  document.getElementById('prix-modal-magasin').textContent = m
+    ? ('Ce prix sera enregistré pour : 🏬 ' + m.nom)
+    : 'Aucun magasin actif : ce prix sera enregistré comme prix général. Choisissez un magasin actif pour un suivi précis par magasin.';
+  const prixMag = (activeMagasinId && p.prixParMagasin && p.prixParMagasin[activeMagasinId] && p.prixParMagasin[activeMagasinId].prix != null)
+    ? p.prixParMagasin[activeMagasinId].prix : (p.prixVu != null ? p.prixVu : '');
+  document.getElementById('prix-modal-valeur').value = prixMag;
+  document.getElementById('prix-modal-unite').value = p.prixUnite || 'piece';
+  openModal('prix-modal');
+};
+document.getElementById('save-prix-modal').onclick = async () => {
+  if(!prixModalProdId) return;
+  const valRaw = document.getElementById('prix-modal-valeur').value;
+  const prix = valRaw === '' ? null : parseFloat(valRaw);
+  const prixUnite = document.getElementById('prix-modal-unite').value;
+  const fields = { prixUnite };
+  if(prix != null && !isNaN(prix)){
+    fields.prixVu = prix;
+    fields.prixDate = serverTimestamp();
+    if(activeMagasinId) fields['prixParMagasin.' + activeMagasinId] = { prix, date: serverTimestamp() };
+  }
+  await updateDoc(doc(db,'users',UID,'catalogue',prixModalProdId), fields);
+  closeModal('prix-modal');
+  toast('✅ Prix enregistré');
+};
+document.getElementById('close-prix-modal').onclick = () => closeModal('prix-modal');
+
 window.toggleSel = function(id) {
   selectedIds.has(id) ? selectedIds.delete(id) : selectedIds.add(id);
   updateSelBar();
@@ -794,7 +857,8 @@ window.addToSpecificList = async function(listeId, listNom) {
   let added = 0;
   for(const p of produits){
     if(!existing.has(p.nom)){
-      await addDoc(collection(db,'users',UID,'listes',listeId,'articles'),{nom:p.nom,categorie:p.categorie,quantite:1,unite:'',coche:false});
+      const unite = p.prixUnite === 'kg' ? 'kg' : (p.prixUnite === 'l' ? 'L' : '');
+      await addDoc(collection(db,'users',UID,'listes',listeId,'articles'),{nom:p.nom,categorie:p.categorie,quantite:1,unite,coche:false});
       added++;
     }
   }
@@ -809,7 +873,9 @@ window.addFast = async function(e, id, nom, cat) {
   const liste = active[0];
   const snap = await getDocs(collection(db,'users',UID,'listes',liste.id,'articles'));
   if(snap.docs.some(d => d.data().nom === nom)){toast('Déjà dans la liste');return;}
-  await addDoc(collection(db,'users',UID,'listes',liste.id,'articles'),{nom,categorie:cat,quantite:1,unite:'',coche:false});
+  const prod = catalogue.find(p => p.id === id);
+  const unite = (prod && prod.prixUnite === 'kg') ? 'kg' : (prod && prod.prixUnite === 'l') ? 'L' : '';
+  await addDoc(collection(db,'users',UID,'listes',liste.id,'articles'),{nom,categorie:cat,quantite:1,unite,coche:false});
   toast(`"${nom}" ajouté`);
 };
 
@@ -829,9 +895,15 @@ function renderCatalogue() {
       const isSel = selectedIds.has(p.id);
       const prixMagasin = (activeMagasinId && p.prixParMagasin && p.prixParMagasin[activeMagasinId] && p.prixParMagasin[activeMagasinId].prix != null)
         ? p.prixParMagasin[activeMagasinId].prix : null;
-      const prixLine = prixMagasin != null
-        ? `<div style="font-size:.72rem;color:var(--accent);font-weight:600">${prixMagasin.toFixed(2)} €</div>`
-        : (p.prixVu != null ? `<div style="font-size:.72rem;color:var(--text3)">≈ ${p.prixVu.toFixed(2)} € (autre magasin)</div>` : '');
+      const uniteSuffix = p.prixUnite === 'kg' ? ' /kg' : (p.prixUnite === 'l' ? ' /L' : '');
+      let prixLine;
+      if(prixMagasin != null){
+        prixLine = `<div style="font-size:.72rem;color:var(--accent);font-weight:600;cursor:pointer" onclick="event.stopPropagation();openPrixModal('${p.id}')">${prixMagasin.toFixed(2)} €${uniteSuffix} ✏️</div>`;
+      } else if(p.prixVu != null){
+        prixLine = `<div style="font-size:.72rem;color:var(--text3);cursor:pointer" onclick="event.stopPropagation();openPrixModal('${p.id}')">≈ ${p.prixVu.toFixed(2)} €${uniteSuffix} (autre magasin) ✏️</div>`;
+      } else {
+        prixLine = `<div style="font-size:.72rem;color:var(--text3);cursor:pointer" onclick="event.stopPropagation();openPrixModal('${p.id}')">+ Ajouter un prix</div>`;
+      }
       html += `<div class="prod-row">
         <div class="chk ${isSel?'on':''}" onclick="toggleSel('${p.id}')"><svg viewBox="0 0 13 13" fill="none" stroke="white" stroke-width="2.5"><path d="M2 7L5 10L11 3"/></svg></div>
         <div class="prod-nom">${p.nom}${prixLine}</div>
@@ -1144,7 +1216,8 @@ window.addToCurrentList = async function(id, nom, cat) {
   const prixMag = (prod && activeMagasinId && prod.prixParMagasin && prod.prixParMagasin[activeMagasinId] && prod.prixParMagasin[activeMagasinId].prix != null)
     ? prod.prixParMagasin[activeMagasinId].prix : null;
   const prix = prixMag != null ? prixMag : ((prod && prod.prixVu != null) ? prod.prixVu : null);
-  await addDoc(collection(db,'users',UID,'listes',activeListeId,'articles'),{nom,categorie:cat,quantite:1,unite:'',coche:false,prix});
+  const unite = (prod && prod.prixUnite === 'kg') ? 'kg' : (prod && prod.prixUnite === 'l') ? 'L' : '';
+  await addDoc(collection(db,'users',UID,'listes',activeListeId,'articles'),{nom,categorie:cat,quantite:1,unite,coche:false,prix});
   toast(`"${nom}" ajouté`);
 };
 
@@ -1616,6 +1689,7 @@ function renderScanResult(ean, p){
   // sinon avec le dernier prix connu tous magasins confondus.
   const prixInput = document.getElementById('scan-r-prix');
   const existingProd = catalogue.find(prod => prod.ean === ean || prod.nom.toLowerCase() === nom.toLowerCase());
+  document.getElementById('scan-r-uniteprix').value = (existingProd && existingProd.prixUnite) ? existingProd.prixUnite : 'piece';
   function fillPrixForMagasin(){
     const magSel = document.getElementById('scan-r-magasin').value;
     const prixMag = (existingProd && magSel && existingProd.prixParMagasin && existingProd.prixParMagasin[magSel] && existingProd.prixParMagasin[magSel].prix != null)
@@ -1639,6 +1713,7 @@ document.getElementById('scan-confirm-btn').onclick = async () => {
   const prixVal = document.getElementById('scan-r-prix').value;
   const prix = prixVal === '' ? null : parseFloat(prixVal);
   const magSel = document.getElementById('scan-r-magasin').value; // magasin choisi pour ce prix (peut être vide)
+  const prixUnite = document.getElementById('scan-r-uniteprix').value; // 'piece' | 'kg' | 'l'
   const extra = {
     ean: scanLastProduct.ean,
     marque: scanLastProduct.marque || '',
@@ -1647,9 +1722,10 @@ document.getElementById('scan-confirm-btn').onclick = async () => {
   };
   const prixOk = prix!=null && !isNaN(prix);
   // Champs de prix à écrire : prixVu = dernier prix vu tous magasins confondus (fallback),
-  // prixParMagasin.<id> = prix spécifique au magasin choisi (mémoire par magasin).
+  // prixParMagasin.<id> = prix spécifique au magasin choisi (mémoire par magasin),
+  // prixUnite = 'piece' | 'kg' | 'l' (précise si le prix est au poids/volume ou à la pièce).
   function prixFields(){
-    const fields = {prixVu: prix, prixDate: serverTimestamp()};
+    const fields = {prixVu: prix, prixDate: serverTimestamp(), prixUnite};
     if(magSel) fields['prixParMagasin.' + magSel] = {prix, date: serverTimestamp()};
     return fields;
   }
@@ -1664,14 +1740,16 @@ document.getElementById('scan-confirm-btn').onclick = async () => {
         nom: scanLastProduct.nom, categorie: cat, createdAt: serverTimestamp(),
         prixVu: prixOk ? prix : null,
         prixDate: prixOk ? serverTimestamp() : null,
+        prixUnite,
         prixParMagasin: (prixOk && magSel) ? {[magSel]: {prix, date: serverTimestamp()}} : {},
         ...extra
       });
       toast('✅ "' + scanLastProduct.nom + '" ajouté au catalogue');
     }
   } else if (scanCtx === 'detail'){
+    const uniteArticle = prixUnite === 'kg' ? 'kg' : (prixUnite === 'l' ? 'L' : '');
     await addDoc(collection(db,'users',UID,'listes',activeListeId,'articles'), {
-      nom: scanLastProduct.nom, categorie: cat, quantite:1, unite:'', coche:false,
+      nom: scanLastProduct.nom, categorie: cat, quantite:1, unite:uniteArticle, coche:false,
       prix: prixOk ? prix : null,
       ...extra
     });
@@ -1681,7 +1759,7 @@ document.getElementById('scan-confirm-btn').onclick = async () => {
       if(existingProd) await updateDoc(doc(db,'users',UID,'catalogue',existingProd.id),prixFields());
       else await addDoc(collection(db,'users',UID,'catalogue'),{
         nom:scanLastProduct.nom, categorie:cat, createdAt:serverTimestamp(),
-        prixVu:prix, prixDate:serverTimestamp(),
+        prixVu:prix, prixDate:serverTimestamp(), prixUnite,
         prixParMagasin: magSel ? {[magSel]: {prix, date: serverTimestamp()}} : {},
         ...extra
       });
