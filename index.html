@@ -809,7 +809,7 @@ window.printListe = function() {
   const date = new Date().toLocaleDateString('fr-FR');
   let body = '';
   for(const cat of categories){
-    const items = articles.filter(a => a.categorie === cat.id);
+    const items = articles.filter(a => a.categorie === cat.id).sort((a,b) => a.nom.localeCompare(b.nom, 'fr'));
     if(!items.length) continue;
     body += `<div class="cat">${cat.label}</div>`;
     for(const a of items)
@@ -1004,7 +1004,7 @@ function renderCatalogue() {
   }
   let html = '';
   for(const cat of categories){
-    const items = filtered.filter(p => p.categorie === cat.id);
+    const items = filtered.filter(p => p.categorie === cat.id).sort((a,b) => a.nom.localeCompare(b.nom, 'fr'));
     if(!items.length) continue;
     html += `<div class="cat-group"><div class="cat-header"><span class="cat-label">${cat.label}</span><div class="cat-line"></div></div>`;
     for(const p of items){
@@ -1446,7 +1446,7 @@ window.renderAvailableProducts = function() {
   const available = catalogue.filter(p => !existing.has(p.nom) && p.nom.toLowerCase().includes(search));
   let html = '';
   for(const cat of categories){
-    const items = available.filter(p => p.categorie === cat.id);
+    const items = available.filter(p => p.categorie === cat.id).sort((a,b) => a.nom.localeCompare(b.nom, 'fr'));
     if(!items.length) continue;
     html += `<div class="cat-header" style="padding:.4rem 0 .2rem"><span class="cat-label">${cat.label}</span><div class="cat-line"></div></div>`;
     for(const p of items){
@@ -1527,7 +1527,7 @@ function renderDetail() {
   const units = ['','kg','g','L','cl','pièce(s)','boîte(s)','sachet(s)','bouteille(s)'];
   let html = '';
   for(const cat of categories){
-    const items = articles.filter(a => a.categorie === cat.id);
+    const items = articles.filter(a => a.categorie === cat.id).sort((a,b) => a.nom.localeCompare(b.nom, 'fr'));
     if(!items.length) continue;
     html += `<div class="cat-header" style="padding:.5rem 0 .25rem"><span class="cat-label">${cat.label}</span><div class="cat-line"></div></div>`;
     for(const a of items){
