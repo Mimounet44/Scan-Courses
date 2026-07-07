@@ -56,7 +56,7 @@
 
   /* Nav */
   .bottom-nav{position:fixed;bottom:0;left:0;right:0;height:var(--nav-h);background:rgba(255,255,255,.96);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:1.5px solid var(--border);display:flex;justify-content:space-around;align-items:center;z-index:100;padding-bottom:env(safe-area-inset-bottom,0)}
-  .nav-btn{display:flex;flex-direction:column;align-items:center;gap:.25rem;color:var(--text3);font-size:.62rem;font-weight:600;padding:.5rem .8rem;border-radius:12px;letter-spacing:.03em}
+  .nav-btn{display:flex;flex-direction:column;align-items:center;gap:.25rem;color:var(--text3);font-size:.62rem;font-weight:600;padding:.5rem 1.2rem;border-radius:12px;letter-spacing:.03em}
   .nav-btn.on{color:var(--accent)}
   .nav-btn svg{width:21px;height:21px;stroke-width:1.8;transition:transform .15s}
   .nav-btn.on svg{transform:translateY(-1px)}
@@ -179,45 +179,7 @@
   ::-webkit-scrollbar{width:4px}
   ::-webkit-scrollbar-track{background:transparent}
   ::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px}
-
-  /* --- Scanner --- */
-  .scan-zone-wrap{background:#0b0b0a;border-radius:var(--r);overflow:hidden;position:relative;margin-bottom:.9rem;display:none}
-  .scan-zone-wrap.on{display:block}
-  .scan-zone{width:100%;aspect-ratio:4/3;position:relative}
-  .scan-actions{display:flex;gap:.5rem}
-  .scan-status{font-size:.8rem;color:var(--text2);margin-top:.7rem;min-height:1.2em;line-height:1.4}
-  .scan-status.error{color:var(--red)}
-  .scan-context{display:none;align-items:center;gap:.5rem;background:var(--accent-light);color:var(--accent);border-radius:20px;padding:.35rem .8rem .35rem 1rem;font-size:.78rem;font-weight:600;margin-bottom:.8rem}
-  .scan-context.show{display:inline-flex}
-  .scan-context button{color:var(--accent);font-weight:700;font-size:.9rem;line-height:1;padding:0 0 0 .3rem}
-
-  .sp-card{display:none}
-  .sp-card.show{display:block;animation:fadeUp .2s ease}
-  .sp-head{display:flex;gap:.85rem;align-items:flex-start}
-  .sp-img{width:64px;height:64px;object-fit:contain;border-radius:12px;background:var(--surface2);flex-shrink:0}
-  .sp-nom{font-weight:700;font-size:1rem;line-height:1.25}
-  .sp-marque{font-size:.8rem;color:var(--text2);margin-top:.1rem}
-  .sp-ean{font-size:.68rem;color:var(--text3);margin-top:.2rem;font-family:monospace;letter-spacing:.02em}
-  .badge-nutri{color:#fff}
-  .badge-nutri.a{background:#1a7a3e}
-  .badge-nutri.b{background:#7ab21e}
-  .badge-nutri.c{background:#f0b000}
-  .badge-nutri.d{background:#e37400}
-  .badge-nutri.e{background:#c23b2e}
-  .sp-details{margin-top:.7rem}
-  .sp-details summary{cursor:pointer;font-weight:600;font-size:.83rem;padding:.5rem 0;list-style:none}
-  .sp-details summary::-webkit-details-marker{display:none}
-  .sp-details summary::before{content:'▸ ';color:var(--text3)}
-  .sp-details[open] summary::before{content:'▾ '}
-  .sp-details p{font-size:.8rem;color:var(--text2);line-height:1.5;padding-bottom:.5rem}
-  .price-hist-row{display:flex;justify-content:space-between;align-items:baseline;padding:.4rem 0;border-bottom:1px dashed var(--border);font-size:.82rem}
-  .price-hist-row:last-child{border-bottom:none}
-  .price-hist-who{color:var(--text2)}
-  .price-hist-val{font-weight:700;color:var(--accent)}
-  .price-best{background:var(--accent-light);color:var(--accent);border-radius:var(--rs);padding:.55rem .8rem;font-size:.8rem;font-weight:600;margin-bottom:.6rem}
 </style>
-
-<!-- ===== Moteur de scan code-barres (WASM embarque) ===== -->
 <script>
 (function(A,d){typeof exports=="object"&&typeof module<"u"?d(exports):typeof define=="function"&&define.amd?define(["exports"],d):(A=typeof globalThis<"u"?globalThis:A||self,d(A.WebWasmBarcodeReader={}))})(this,(function(A){"use strict";const d="barcode-scanner-overlay-styles",b="rgba(0, 0, 0, 0.55)",y="#00ff88",g="#00ff88";function E(){if(document.getElementById(d))return;const h=document.createElement("style");h.id=d,h.textContent=`
     @keyframes scan-sweep {
@@ -317,7 +279,6 @@ window.__WASM_B64__ = "AGFzbQEAAAAB0AEaYAF/AGACf38Bf2ABfwF/YAJ/fwBgA39/fwF/YAR/f
 var Module=typeof Module!="undefined"?Module:{};var ENVIRONMENT_IS_WEB=!!globalThis.window;var ENVIRONMENT_IS_WORKER=!!globalThis.WorkerGlobalScope;var ENVIRONMENT_IS_NODE=globalThis.process?.versions?.node&&globalThis.process?.type!="renderer";var arguments_=[];var thisProgram="./this.program";var quit_=(status,toThrow)=>{throw toThrow};var _scriptName=globalThis.document?.currentScript?.src;if(typeof __filename!="undefined"){_scriptName=__filename}else if(ENVIRONMENT_IS_WORKER){_scriptName=self.location.href}var scriptDirectory="";function locateFile(path){if(Module["locateFile"]){return Module["locateFile"](path,scriptDirectory)}return scriptDirectory+path}var readAsync,readBinary;if(ENVIRONMENT_IS_NODE){var fs=require("node:fs");scriptDirectory=__dirname+"/";readBinary=filename=>{filename=isFileURI(filename)?new URL(filename):filename;var ret=fs.readFileSync(filename);return ret};readAsync=async(filename,binary=true)=>{filename=isFileURI(filename)?new URL(filename):filename;var ret=fs.readFileSync(filename,binary?undefined:"utf8");return ret};if(process.argv.length>1){thisProgram=process.argv[1].replace(/\\/g,"/")}arguments_=process.argv.slice(2);if(typeof module!="undefined"){module["exports"]=Module}quit_=(status,toThrow)=>{process.exitCode=status;throw toThrow}}else if(ENVIRONMENT_IS_WEB||ENVIRONMENT_IS_WORKER){try{scriptDirectory=new URL(".",_scriptName).href}catch{}{if(ENVIRONMENT_IS_WORKER){readBinary=url=>{var xhr=new XMLHttpRequest;xhr.open("GET",url,false);xhr.responseType="arraybuffer";xhr.send(null);return new Uint8Array(xhr.response)}}readAsync=async url=>{if(isFileURI(url)){return new Promise((resolve,reject)=>{var xhr=new XMLHttpRequest;xhr.open("GET",url,true);xhr.responseType="arraybuffer";xhr.onload=()=>{if(xhr.status==200||xhr.status==0&&xhr.response){resolve(xhr.response);return}reject(xhr.status)};xhr.onerror=reject;xhr.send(null)})}var response=await fetch(url,{credentials:"same-origin"});if(response.ok){return response.arrayBuffer()}throw new Error(response.status+" : "+response.url)}}}else{}var out=console.log.bind(console);var err=console.error.bind(console);var wasmBinary;var ABORT=false;var EXITSTATUS;var isFileURI=filename=>filename.startsWith("file://");var HEAP8,HEAPU8,HEAP16,HEAPU16,HEAP32,HEAPU32,HEAPF32,HEAPF64;var HEAP64,HEAPU64;var runtimeInitialized=false;function updateMemoryViews(){var b=wasmMemory.buffer;Module["HEAP8"]=HEAP8=new Int8Array(b);HEAP16=new Int16Array(b);Module["HEAPU8"]=HEAPU8=new Uint8Array(b);HEAPU16=new Uint16Array(b);Module["HEAP32"]=HEAP32=new Int32Array(b);HEAPU32=new Uint32Array(b);HEAPF32=new Float32Array(b);HEAPF64=new Float64Array(b);HEAP64=new BigInt64Array(b);HEAPU64=new BigUint64Array(b)}function preRun(){if(Module["preRun"]){if(typeof Module["preRun"]=="function")Module["preRun"]=[Module["preRun"]];while(Module["preRun"].length){addOnPreRun(Module["preRun"].shift())}}callRuntimeCallbacks(onPreRuns)}function initRuntime(){runtimeInitialized=true;wasmExports["k"]()}function postRun(){if(Module["postRun"]){if(typeof Module["postRun"]=="function")Module["postRun"]=[Module["postRun"]];while(Module["postRun"].length){addOnPostRun(Module["postRun"].shift())}}callRuntimeCallbacks(onPostRuns)}function abort(what){Module["onAbort"]?.(what);what="Aborted("+what+")";err(what);ABORT=true;what+=". Build with -sASSERTIONS for more info.";var e=new WebAssembly.RuntimeError(what);throw e}var wasmBinaryFile;function findWasmBinary(){return locateFile("a.out.wasm")}function getBinarySync(file){if(file==wasmBinaryFile&&wasmBinary){return new Uint8Array(wasmBinary)}if(readBinary){return readBinary(file)}throw"both async and sync fetching of the wasm failed"}async function getWasmBinary(binaryFile){if(!wasmBinary){try{var response=await readAsync(binaryFile);return new Uint8Array(response)}catch{}}return getBinarySync(binaryFile)}async function instantiateArrayBuffer(binaryFile,imports){try{var binary=await getWasmBinary(binaryFile);var instance=await WebAssembly.instantiate(binary,imports);return instance}catch(reason){err(`failed to asynchronously prepare wasm: ${reason}`);abort(reason)}}async function instantiateAsync(binary,binaryFile,imports){if(!binary&&!isFileURI(binaryFile)&&!ENVIRONMENT_IS_NODE){try{var response=fetch(binaryFile,{credentials:"same-origin"});var instantiationResult=await WebAssembly.instantiateStreaming(response,imports);return instantiationResult}catch(reason){err(`wasm streaming compile failed: ${reason}`);err("falling back to ArrayBuffer instantiation")}}return instantiateArrayBuffer(binaryFile,imports)}function getWasmImports(){var imports={a:wasmImports};return imports}async function createWasm(){function receiveInstance(instance,module){wasmExports=instance.exports;assignWasmExports(wasmExports);updateMemoryViews();removeRunDependency("wasm-instantiate");return wasmExports}addRunDependency("wasm-instantiate");function receiveInstantiationResult(result){return receiveInstance(result["instance"])}var info=getWasmImports();if(Module["instantiateWasm"]){return new Promise((resolve,reject)=>{Module["instantiateWasm"](info,(inst,mod)=>{resolve(receiveInstance(inst,mod))})})}wasmBinaryFile??=findWasmBinary();var result=await instantiateAsync(wasmBinary,wasmBinaryFile,info);var exports=receiveInstantiationResult(result);return exports}class ExitStatus{name="ExitStatus";constructor(status){this.message=`Program terminated with exit(${status})`;this.status=status}}var callRuntimeCallbacks=callbacks=>{while(callbacks.length>0){callbacks.shift()(Module)}};var onPostRuns=[];var addOnPostRun=cb=>onPostRuns.push(cb);var onPreRuns=[];var addOnPreRun=cb=>onPreRuns.push(cb);var runDependencies=0;var dependenciesFulfilled=null;var removeRunDependency=id=>{runDependencies--;Module["monitorRunDependencies"]?.(runDependencies);if(runDependencies==0){if(dependenciesFulfilled){var callback=dependenciesFulfilled;dependenciesFulfilled=null;callback()}}};var addRunDependency=id=>{runDependencies++;Module["monitorRunDependencies"]?.(runDependencies)};var noExitRuntime=true;var UTF8Decoder=globalThis.TextDecoder&&new TextDecoder;var findStringEnd=(heapOrArray,idx,maxBytesToRead,ignoreNul)=>{var maxIdx=idx+maxBytesToRead;if(ignoreNul)return maxIdx;while(heapOrArray[idx]&&!(idx>=maxIdx))++idx;return idx};var UTF8ArrayToString=(heapOrArray,idx=0,maxBytesToRead,ignoreNul)=>{var endPtr=findStringEnd(heapOrArray,idx,maxBytesToRead,ignoreNul);if(endPtr-idx>16&&heapOrArray.buffer&&UTF8Decoder){return UTF8Decoder.decode(heapOrArray.subarray(idx,endPtr))}var str="";while(idx<endPtr){var u0=heapOrArray[idx++];if(!(u0&128)){str+=String.fromCharCode(u0);continue}var u1=heapOrArray[idx++]&63;if((u0&224)==192){str+=String.fromCharCode((u0&31)<<6|u1);continue}var u2=heapOrArray[idx++]&63;if((u0&240)==224){u0=(u0&15)<<12|u1<<6|u2}else{u0=(u0&7)<<18|u1<<12|u2<<6|heapOrArray[idx++]&63}if(u0<65536){str+=String.fromCharCode(u0)}else{var ch=u0-65536;str+=String.fromCharCode(55296|ch>>10,56320|ch&1023)}}return str};var UTF8ToString=(ptr,maxBytesToRead,ignoreNul)=>ptr?UTF8ArrayToString(HEAPU8,ptr,maxBytesToRead,ignoreNul):"";var ___assert_fail=(condition,filename,line,func)=>abort(`Assertion failed: ${UTF8ToString(condition)}, at: `+[filename?UTF8ToString(filename):"unknown filename",line,func?UTF8ToString(func):"unknown function"]);var __abort_js=()=>abort("");var runtimeKeepaliveCounter=0;var __emscripten_runtime_keepalive_clear=()=>{noExitRuntime=false;runtimeKeepaliveCounter=0};var timers={};var handleException=e=>{if(e instanceof ExitStatus||e=="unwind"){return EXITSTATUS}quit_(1,e)};var keepRuntimeAlive=()=>noExitRuntime||runtimeKeepaliveCounter>0;var _proc_exit=code=>{EXITSTATUS=code;if(!keepRuntimeAlive()){Module["onExit"]?.(code);ABORT=true}quit_(code,new ExitStatus(code))};var exitJS=(status,implicit)=>{EXITSTATUS=status;_proc_exit(status)};var _exit=exitJS;var maybeExit=()=>{if(!keepRuntimeAlive()){try{_exit(EXITSTATUS)}catch(e){handleException(e)}}};var callUserCallback=func=>{if(ABORT){return}try{return func()}catch(e){handleException(e)}finally{maybeExit()}};var _emscripten_get_now=()=>performance.now();var __setitimer_js=(which,timeout_ms)=>{if(timers[which]){clearTimeout(timers[which].id);delete timers[which]}if(!timeout_ms)return 0;var id=setTimeout(()=>{delete timers[which];callUserCallback(()=>__emscripten_timeout(which,_emscripten_get_now()))},timeout_ms);timers[which]={id,timeout_ms};return 0};var _emscripten_date_now=()=>Date.now();var nowIsMonotonic=1;var checkWasiClock=clock_id=>clock_id>=0&&clock_id<=3;var INT53_MAX=9007199254740992;var INT53_MIN=-9007199254740992;var bigintToI53Checked=num=>num<INT53_MIN||num>INT53_MAX?NaN:Number(num);function _clock_time_get(clk_id,ignored_precision,ptime){ignored_precision=bigintToI53Checked(ignored_precision);if(!checkWasiClock(clk_id)){return 28}var now;if(clk_id===0){now=_emscripten_date_now()}else if(nowIsMonotonic){now=_emscripten_get_now()}else{return 52}var nsec=Math.round(now*1e3*1e3);HEAP64[ptime>>3]=BigInt(nsec);return 0}var getHeapMax=()=>2147483648;var alignMemory=(size,alignment)=>Math.ceil(size/alignment)*alignment;var growMemory=size=>{var oldHeapSize=wasmMemory.buffer.byteLength;var pages=(size-oldHeapSize+65535)/65536|0;try{wasmMemory.grow(pages);updateMemoryViews();return 1}catch(e){}};var _emscripten_resize_heap=requestedSize=>{var oldSize=HEAPU8.length;requestedSize>>>=0;var maxHeapSize=getHeapMax();if(requestedSize>maxHeapSize){return false}for(var cutDown=1;cutDown<=4;cutDown*=2){var overGrownHeapSize=oldSize*(1+.2/cutDown);overGrownHeapSize=Math.min(overGrownHeapSize,requestedSize+100663296);var newSize=Math.min(maxHeapSize,alignMemory(Math.max(requestedSize,overGrownHeapSize),65536));var replacement=growMemory(newSize);if(replacement){return true}}return false};var printCharBuffers=[null,[],[]];var printChar=(stream,curr)=>{var buffer=printCharBuffers[stream];if(curr===0||curr===10){(stream===1?out:err)(UTF8ArrayToString(buffer));buffer.length=0}else{buffer.push(curr)}};var _fd_write=(fd,iov,iovcnt,pnum)=>{var num=0;for(var i=0;i<iovcnt;i++){var ptr=HEAPU32[iov>>2];var len=HEAPU32[iov+4>>2];iov+=8;for(var j=0;j<len;j++){printChar(fd,HEAPU8[ptr+j])}num+=len}HEAPU32[pnum>>2]=num;return 0};function _js_output_result(symbol,data,polygon,polygon_size){const Pointer_stringify=Module["UTF8ToString"];const coordinates=new Int32Array(Module["HEAP32"].buffer,polygon,polygon_size*2);const downstreamProcessor=Module["processResult"];if(downstreamProcessor==null){return}downstreamProcessor(Pointer_stringify(symbol),Pointer_stringify(data),coordinates)}{if(Module["noExitRuntime"])noExitRuntime=Module["noExitRuntime"];if(Module["print"])out=Module["print"];if(Module["printErr"])err=Module["printErr"];if(Module["wasmBinary"])wasmBinary=Module["wasmBinary"];if(Module["arguments"])arguments_=Module["arguments"];if(Module["thisProgram"])thisProgram=Module["thisProgram"];if(Module["preInit"]){if(typeof Module["preInit"]=="function")Module["preInit"]=[Module["preInit"]];while(Module["preInit"].length>0){Module["preInit"].shift()()}}}Module["UTF8ToString"]=UTF8ToString;var _scan_image,_scan_image_rgba,_destroy_scanner,_create_buffer,_destroy_buffer,__emscripten_timeout,memory,__indirect_function_table,wasmMemory;function assignWasmExports(wasmExports){_scan_image=Module["_scan_image"]=wasmExports["l"];_scan_image_rgba=Module["_scan_image_rgba"]=wasmExports["m"];_destroy_scanner=Module["_destroy_scanner"]=wasmExports["n"];_create_buffer=Module["_create_buffer"]=wasmExports["o"];_destroy_buffer=Module["_destroy_buffer"]=wasmExports["p"];__emscripten_timeout=wasmExports["q"];memory=wasmMemory=wasmExports["j"];__indirect_function_table=wasmExports["__indirect_function_table"]}var wasmImports={a:___assert_fail,c:__abort_js,b:__emscripten_runtime_keepalive_clear,d:__setitimer_js,g:_clock_time_get,e:_emscripten_resize_heap,f:_fd_write,i:_js_output_result,h:_proc_exit};function run(){if(runDependencies>0){dependenciesFulfilled=run;return}preRun();if(runDependencies>0){dependenciesFulfilled=run;return}function doRun(){Module["calledRun"]=true;if(ABORT)return;initRuntime();Module["onRuntimeInitialized"]?.();postRun()}if(Module["setStatus"]){Module["setStatus"]("Running...");setTimeout(()=>{setTimeout(()=>Module["setStatus"](""),1);doRun()},1)}else{doRun()}}var wasmExports;createWasm();run();
 
 </script>
-
 </head>
 <body>
 
@@ -382,6 +343,7 @@ var Module=typeof Module!="undefined"?Module:{};var ENVIRONMENT_IS_WEB=!!globalT
       <div class="frow">
         <input id="c-nom" placeholder="Ajouter un produit" style="flex:2">
         <select id="c-cat" style="flex:1;min-width:110px"></select>
+        <button class="btn btn-outline btn-icon" id="scan-catalogue-btn" title="Scanner un code-barres" style="flex:none">📷</button>
         <button class="btn btn-primary btn-icon" id="add-produit-btn">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
         </button>
@@ -425,64 +387,6 @@ var Module=typeof Module!="undefined"?Module:{};var ENVIRONMENT_IS_WEB=!!globalT
       <select id="f-dossier" style="width:auto;flex:1"><option value="">Tous dossiers</option></select>
     </div>
     <div id="listes-list"></div>
-  </div>
-
-  <!-- SCANNER -->
-  <div id="page-scanner" class="page">
-    <div class="page-header">
-      <div class="page-title">Scanner</div>
-    </div>
-    <div class="scan-context" id="scan-context">
-      <span id="scan-context-label"></span>
-      <button id="scan-context-clear" title="Annuler la cible">✕</button>
-    </div>
-    <div class="card">
-      <div class="scan-zone-wrap" id="scan-zone-wrap">
-        <div class="scan-zone" id="scan-zone"></div>
-      </div>
-      <div class="scan-actions">
-        <button class="btn btn-primary btn-full" id="scan-start-btn">📷 Démarrer le scan</button>
-        <button class="btn btn-outline btn-icon" id="scan-torch-btn" style="display:none">💡</button>
-      </div>
-      <div class="frow" style="margin-top:.7rem">
-        <input id="scan-manual-ean" placeholder="Ou saisir un code-barres (EAN)" inputmode="numeric">
-        <button class="btn btn-outline btn-sm" id="scan-manual-btn" style="flex:none">OK</button>
-      </div>
-      <p class="scan-status" id="scan-status"></p>
-    </div>
-
-    <div class="card sp-card" id="sp-card">
-      <div class="sp-head">
-        <img class="sp-img" id="sp-img" src="" alt="">
-        <div style="flex:1;min-width:0">
-          <div class="sp-nom" id="sp-nom">—</div>
-          <div class="sp-marque" id="sp-marque">—</div>
-          <div class="sp-ean" id="sp-ean">—</div>
-        </div>
-      </div>
-      <div id="sp-cat-note" style="font-size:.78rem;color:var(--accent);font-weight:600;margin-top:.5rem"></div>
-      <div style="display:flex;gap:.4rem;flex-wrap:wrap;margin-top:.6rem" id="sp-badges"></div>
-
-      <details class="sp-details"><summary>Ingrédients</summary><p id="sp-ingredients">Non renseigné.</p></details>
-      <details class="sp-details"><summary>Allergènes</summary><p id="sp-allergenes">Non renseigné.</p></details>
-      <details class="sp-details"><summary>Valeurs nutritionnelles (100g)</summary><p id="sp-nutrition">Non renseigné.</p></details>
-
-      <div class="divider"></div>
-
-      <div class="section-title" style="margin-top:0">Prix relevé en magasin</div>
-      <div class="frow">
-        <input type="number" step="0.01" id="sp-prix-input" placeholder="0.00 €">
-        <button class="btn btn-primary btn-sm" id="sp-save-prix-btn" style="flex:none">Enregistrer</button>
-      </div>
-      <p style="font-size:.72rem;color:var(--text3);margin-top:.4rem">👨‍👩‍👧 Partagé avec toute la famille</p>
-      <div id="sp-best-prix"></div>
-      <div id="sp-historique" style="margin-top:.4rem"></div>
-
-      <div style="display:flex;gap:.5rem;margin-top:1rem">
-        <button class="btn btn-outline btn-full" id="sp-scan-next-btn">🔁 Scanner un autre</button>
-        <button class="btn btn-primary btn-full" id="sp-add-liste-btn">→ Ajouter à une liste</button>
-      </div>
-    </div>
   </div>
 
   <!-- PROFIL -->
@@ -537,15 +441,10 @@ var Module=typeof Module!="undefined"?Module:{};var ENVIRONMENT_IS_WEB=!!globalT
     </div>
     <div id="detail-header"></div>
     <div class="card-flat" id="add-section">
-      <div style="display:flex;gap:.5rem">
-        <button id="toggle-add-panel" style="flex:1;text-align:center;color:var(--accent);font-weight:600;font-size:.85rem;padding:.5rem;display:flex;align-items:center;justify-content:center;gap:.4rem">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
-          Ajouter des produits
-        </button>
-        <button id="detail-scan-btn" style="flex:1;text-align:center;color:var(--accent);font-weight:600;font-size:.85rem;padding:.5rem;display:flex;align-items:center;justify-content:center;gap:.4rem;border-left:1.5px solid var(--border)">
-          📷 Scanner
-        </button>
-      </div>
+      <button id="toggle-add-panel" style="width:100%;text-align:center;color:var(--accent);font-weight:600;font-size:.85rem;padding:.5rem;display:flex;align-items:center;justify-content:center;gap:.4rem">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+        Ajouter des produits
+      </button>
       <div id="add-body" style="display:none;margin-top:.75rem">
         <input id="d-search" placeholder="Rechercher dans le catalogue…" style="margin-bottom:.6rem">
         <div id="d-cat-list" style="max-height:240px;overflow-y:auto"></div>
@@ -554,6 +453,7 @@ var Module=typeof Module!="undefined"?Module:{};var ENVIRONMENT_IS_WEB=!!globalT
         <div class="frow">
           <input id="d-man-nom" placeholder="Nom du produit">
           <select id="d-man-cat" style="flex:none;width:auto"></select>
+          <button class="btn btn-outline btn-icon btn-sm" id="scan-detail-btn" title="Scanner un code-barres" style="flex:none">📷</button>
           <button class="btn btn-primary btn-icon btn-sm" id="add-manuel-btn">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
           </button>
@@ -574,11 +474,6 @@ var Module=typeof Module!="undefined"?Module:{};var ENVIRONMENT_IS_WEB=!!globalT
     <button class="nav-btn" id="nav-listes">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M8 8h8M8 12h5M8 16h6"/></svg>
       <span>Listes</span>
-      <div class="nav-dot"></div>
-    </button>
-    <button class="nav-btn" id="nav-scanner">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"/><line x1="7" y1="12" x2="17" y2="12"/></svg>
-      <span>Scanner</span>
       <div class="nav-dot"></div>
     </button>
     <button class="nav-btn" id="nav-profil">
@@ -627,12 +522,54 @@ var Module=typeof Module!="undefined"?Module:{};var ENVIRONMENT_IS_WEB=!!globalT
   </div>
 </div>
 
+<div id="scan-modal" class="overlay">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-drag"></div>
+    <div class="modal-title">📷 Scanner un produit</div>
+    <p style="color:var(--text2);font-size:.82rem;margin-bottom:.9rem">Vise le code-barres, la détection est automatique.</p>
+
+    <div id="scan-zone" style="background:#1a1a18;border-radius:12px;overflow:hidden;position:relative;min-height:60px;aspect-ratio:4/3;display:none;"></div>
+
+    <div style="display:flex;gap:.5rem;margin-top:.8rem">
+      <button class="btn btn-primary btn-full" id="scan-start-btn" style="padding:.7rem">Démarrer la caméra</button>
+      <button class="btn btn-outline btn-icon" id="scan-torch-btn" style="display:none;flex:none" title="Torche">💡</button>
+    </div>
+
+    <input id="scan-manual-ean" placeholder="Ou saisir un code-barres (EAN)" inputmode="numeric" style="margin-top:.6rem">
+
+    <div id="scan-status" style="font-size:.82rem;color:var(--text2);margin-top:.6rem;min-height:1.2em"></div>
+
+    <div id="scan-result-card" style="display:none;margin-top:1rem;border-top:1px dashed var(--border2);padding-top:1rem">
+      <div style="display:flex;gap:.8rem;margin-bottom:.7rem">
+        <img id="scan-r-img" src="" style="width:64px;height:64px;object-fit:contain;background:#fff;border:1px solid var(--border2);border-radius:8px;flex-shrink:0">
+        <div>
+          <div id="scan-r-nom" style="font-weight:700;font-size:.95rem"></div>
+          <div id="scan-r-marque" style="color:var(--text2);font-size:.8rem;margin-top:.15rem"></div>
+          <div id="scan-r-badges" style="margin-top:.3rem;display:flex;gap:.3rem"></div>
+        </div>
+      </div>
+      <div class="frow" style="margin-bottom:.7rem">
+        <select id="scan-r-cat" style="flex:1"></select>
+        <input type="number" step="0.01" min="0" id="scan-r-prix" placeholder="Prix vu en magasin (€)" style="flex:1">
+      </div>
+      <div style="display:flex;gap:.5rem">
+        <button class="btn btn-outline btn-full" id="scan-rescan-btn">Rescanner</button>
+        <button class="btn btn-primary btn-full" id="scan-confirm-btn">Ajouter</button>
+      </div>
+    </div>
+
+    <div style="margin-top:1rem">
+      <button class="btn btn-outline btn-full" id="close-scan-modal">Fermer</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
 import { getAuth, signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged, updateProfile, updatePassword, EmailAuthProvider, reauthenticateWithCredential, createUserWithEmailAndPassword } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
-import { getFirestore, collection, doc, addDoc, updateDoc, deleteDoc, onSnapshot, serverTimestamp, getDocs, writeBatch, getDoc, setDoc, arrayUnion } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+import { getFirestore, collection, doc, addDoc, updateDoc, deleteDoc, onSnapshot, serverTimestamp, getDocs, writeBatch } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 
 const FB = {
   apiKey:"AIzaSyDMHRowm0gRH09w6qzRf89SWtE_y89KcZY",
@@ -651,32 +588,6 @@ let UID = null, activeListeId = null;
 let catalogue = [], listes = [], dossiers = [], articles = [];
 let selectedIds = new Set();
 let unsubCat = null, unsubListes = null, unsubDoss = null, unsubArt = null, unsubCategories = null;
-
-// --- Scanner ---
-let scanner = null;
-let scanTargetListId = null;
-let scanTargetListNom = null;
-let currentScanProduct = null; // {ean, nom, marque, categorie, image, deja}
-
-const CATEGORY_KEYWORDS = {
-  legumes:['vegetable','legume','potato','pomme-de-terre','tomato','carrot','salad'],
-  fruits:['fruit'],
-  viande:['meat','viande','poultry','poulet','beef','boeuf','pork','porc','charcuterie','sausage','saucisse'],
-  poisson:['fish','poisson','seafood','crustace','salmon','saumon'],
-  laitage:['dairy','lait','milk','fromage','cheese','yogurt','yaourt','egg','oeuf','butter','beurre','cream'],
-  boulangerie:['bread','pain','bakery','boulangerie','pastry','patisserie','viennoiserie'],
-  boissons:['beverage','boisson','water','eau','juice','jus','soda','beer','biere','wine','vin'],
-  hygiene:['hygiene','cosmetic','cosmetique','shampoo','shampoing','toothpaste','dentifrice','soap','savon'],
-  entretien:['cleaning','entretien','detergent','lessive','household'],
-  epicerie:['grocery','epicerie','pasta','pate','rice','riz','sauce','condiment','canned','conserve','sugar','sucre','flour','farine','oil','huile','coffee','cafe']
-};
-function guessCategorie(product){
-  const tags = ((product.categories_tags||[]).join(' ') + ' ' + (product.categories||'')).toLowerCase();
-  for(const [cat,kws] of Object.entries(CATEGORY_KEYWORDS)){
-    if(kws.some(k => tags.includes(k))) return cat;
-  }
-  return 'autre';
-}
 
 const DEFAULT_CATEGORIES = [
   {id:'legumes',label:'🥦 Légumes'},{id:'fruits',label:'🍎 Fruits'},
@@ -756,22 +667,11 @@ function confirmAction(title, msg, callback) {
 // --- Navigation ---
 document.getElementById('nav-catalogue').onclick = () => goPage('catalogue');
 document.getElementById('nav-listes').onclick = () => goPage('listes');
-document.getElementById('nav-scanner').onclick = () => { scanTargetListId=null; scanTargetListNom=null; updateScanContext(); goPage('scanner'); };
 document.getElementById('nav-profil').onclick = () => goPage('profil');
 document.getElementById('close-detail-btn').onclick = () => closeDetail();
 document.getElementById('print-list-btn').onclick = () => printListe();
-document.getElementById('detail-scan-btn').onclick = () => {
-  const liste = listes.find(l => l.id === activeListeId);
-  scanTargetListId = activeListeId;
-  scanTargetListNom = liste ? liste.nom : '';
-  updateScanContext();
-  goPage('scanner');
-};
 
-let currentPage = 'catalogue';
 window.goPage = function(page) {
-  if(currentPage === 'scanner' && page !== 'scanner') stopScanApp();
-  currentPage = page;
   document.querySelectorAll('.page,.subpage').forEach(p => p.classList.remove('show'));
   document.getElementById(`page-${page}`).classList.add('show');
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('on'));
@@ -1087,6 +987,16 @@ function renderDetailHeader() {
       </div>
       <div class="progress-bar" style="margin-bottom:.8rem"><div class="progress-fill" style="width:${pct}%"></div></div>
     ` : ''}
+    ${(() => {
+      const withPrix = articles.filter(a => a.prix != null);
+      if(!withPrix.length) return '';
+      const totalPrix = withPrix.reduce((sum,a) => sum + a.prix*(a.quantite||1), 0);
+      const manquants = total - withPrix.length;
+      return `<div style="display:flex;justify-content:space-between;align-items:baseline;background:var(--accent-light);border-radius:8px;padding:.5rem .7rem;margin-bottom:.8rem">
+        <span style="font-size:.8rem;color:var(--accent)">💰 Total estimé${manquants>0?' ('+manquants+' sans prix)':''}</span>
+        <span style="font-weight:700;color:var(--accent);font-size:1rem">${totalPrix.toFixed(2)} €</span>
+      </div>`;
+    })()}
   `;
 }
 
@@ -1115,7 +1025,9 @@ window.renderAvailableProducts = function() {
 };
 
 window.addToCurrentList = async function(id, nom, cat) {
-  await addDoc(collection(db,'users',UID,'listes',activeListeId,'articles'),{nom,categorie:cat,quantite:1,unite:'',coche:false});
+  const prod = catalogue.find(p => p.id === id);
+  const prix = (prod && prod.prixVu != null) ? prod.prixVu : null;
+  await addDoc(collection(db,'users',UID,'listes',activeListeId,'articles'),{nom,categorie:cat,quantite:1,unite:'',coche:false,prix});
   toast(`"${nom}" ajouté`);
 };
 
@@ -1140,6 +1052,19 @@ window.changeQuantity = async function(id, value) {
 
 window.changeUnit = async function(id, unit) {
   await updateDoc(doc(db,'users',UID,'listes',activeListeId,'articles',id),{unite:unit});
+};
+
+window.changePrix = async function(id, value) {
+  const prix = value === '' ? null : parseFloat(value);
+  await updateDoc(doc(db,'users',UID,'listes',activeListeId,'articles',id),{prix: (prix==null||isNaN(prix)) ? null : prix});
+  // Mémorise ce prix comme "dernier prix connu" du produit dans le catalogue, pour préremplir la prochaine fois.
+  if(prix!=null && !isNaN(prix)){
+    const art = articles.find(a => a.id === id);
+    if(art){
+      const prod = catalogue.find(p => p.nom.toLowerCase() === art.nom.toLowerCase());
+      if(prod) await updateDoc(doc(db,'users',UID,'catalogue',prod.id),{prixVu: prix, prixDate: serverTimestamp()});
+    }
+  }
 };
 
 window.deleteArticle = function(id, nom) {
@@ -1168,11 +1093,12 @@ function renderDetail() {
           <div class="article-info">
             <span class="article-name" style="${a.coche?'text-decoration:line-through':''}">${a.nom}</span>
             ${!isTerminee ? `
-              <div style="display:flex;align-items:center;gap:.35rem">
+              <div style="display:flex;align-items:center;gap:.35rem;flex-wrap:wrap">
                 <input type="number" step="0.5" min="0" value="${a.quantite||1}" class="qty-input" onchange="changeQuantity('${a.id}',this.value)">
                 <select class="qty-unite" onchange="changeUnit('${a.id}',this.value)">${unitOpts}</select>
+                <input type="number" step="0.01" min="0" placeholder="Prix €" value="${a.prix!=null?a.prix:''}" class="qty-input" style="width:70px" onchange="changePrix('${a.id}',this.value)">
               </div>
-            ` : `<span style="font-size:.75rem;color:var(--text2)">${a.quantite||1} ${a.unite||''}</span>`}
+            ` : `<span style="font-size:.75rem;color:var(--text2)">${a.quantite||1} ${a.unite||''}${a.prix!=null?' · '+(a.prix*(a.quantite||1)).toFixed(2)+' €':''}</span>`}
           </div>
           ${!isTerminee ? `<button class="btn btn-icon btn-sm" style="color:var(--red)" onclick="deleteArticle('${a.id}','${esc(a.nom)}')">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/></svg>
@@ -1352,284 +1278,6 @@ onAuthStateChanged(auth, async user => {
   }
 });
 
-// --- Scanner : UI ---
-function setScanStatus(msg, isError) {
-  const el = document.getElementById('scan-status');
-  el.textContent = msg || '';
-  el.classList.toggle('error', !!isError);
-}
-
-function updateScanContext() {
-  const el = document.getElementById('scan-context');
-  const label = document.getElementById('scan-context-label');
-  if (scanTargetListId) {
-    label.textContent = `Ajout direct à : ${scanTargetListNom}`;
-    el.classList.add('show');
-  } else {
-    el.classList.remove('show');
-  }
-}
-document.getElementById('scan-context-clear').onclick = () => { scanTargetListId = null; scanTargetListNom = null; updateScanContext(); };
-
-function resetScanButtonsApp() {
-  document.getElementById('scan-start-btn').textContent = '📷 Démarrer le scan';
-  document.getElementById('scan-torch-btn').style.display = 'none';
-  document.getElementById('scan-zone-wrap').classList.remove('on');
-}
-
-async function startScanApp() {
-  if (scanner && scanner.isRunning) return;
-  if (typeof WebWasmBarcodeReader === 'undefined') {
-    setScanStatus('Erreur de chargement du moteur de scan. Rechargez la page.', true);
-    return;
-  }
-  document.getElementById('sp-card').classList.remove('show');
-  currentScanProduct = null;
-  setScanStatus('Ouverture de la caméra…');
-  const wrap = document.getElementById('scan-zone-wrap');
-  const zone = document.getElementById('scan-zone');
-  wrap.classList.add('on');
-  zone.innerHTML = '';
-  zone.style.height = Math.round(zone.getBoundingClientRect().width * 0.75) + 'px';
-  await new Promise(requestAnimationFrame);
-
-  let startupFailed = false, startupErrorMsg = '';
-  scanner = new WebWasmBarcodeReader.BarcodeScanner({
-    container: zone,
-    beepOnDetect: true,
-    facingMode: 'environment',
-    scanRegion: { width: 0.88, height: 0.34 },
-    resolutionScale: 2.2,
-    onDetect: (result) => onBarcodeDetectedApp(result.data),
-    onError: (err) => {
-      console.error('Erreur scanner :', err);
-      startupFailed = true;
-      startupErrorMsg = (err && err.message) ? err.message : String(err);
-      resetScanButtonsApp();
-    }
-  });
-
-  try {
-    await scanner.start();
-    if (startupFailed) {
-      setScanStatus('Impossible de démarrer le scan : ' + startupErrorMsg, true);
-      scanner = null;
-    } else {
-      document.getElementById('scan-start-btn').textContent = 'Arrêter le scan';
-      document.getElementById('scan-torch-btn').style.display = 'inline-flex';
-      setScanStatus('Visez le code-barres, il sera détecté automatiquement…');
-    }
-  } catch (err) {
-    setScanStatus("Impossible d'accéder à la caméra : " + (err && err.message ? err.message : String(err)), true);
-    resetScanButtonsApp();
-    scanner = null;
-  }
-}
-
-function stopScanApp() {
-  if (scanner) { scanner.stop(); scanner = null; }
-  resetScanButtonsApp();
-}
-
-document.getElementById('scan-start-btn').addEventListener('click', () => {
-  (scanner && scanner.isRunning) ? stopScanApp() : startScanApp();
-});
-document.getElementById('scan-torch-btn').addEventListener('click', async () => {
-  if (!scanner || !scanner.isRunning) return;
-  try {
-    const on = await scanner.toggleTorch();
-    document.getElementById('scan-torch-btn').style.opacity = on ? '1' : '0.5';
-  } catch (err) {
-    setScanStatus('Torche non disponible sur cet appareil.', true);
-  }
-});
-document.getElementById('scan-manual-btn').addEventListener('click', () => {
-  const val = document.getElementById('scan-manual-ean').value.trim();
-  if (val) onBarcodeDetectedApp(val);
-});
-document.getElementById('sp-scan-next-btn').addEventListener('click', () => {
-  document.getElementById('sp-card').classList.remove('show');
-  currentScanProduct = null;
-  startScanApp();
-});
-
-// --- Scanner : recherche produit + catalogue ---
-let scanProcessing = false;
-async function onBarcodeDetectedApp(ean) {
-  if (scanProcessing) return;
-  scanProcessing = true;
-  if (navigator.vibrate) navigator.vibrate(80);
-  setScanStatus('Code détecté : ' + ean + ' — recherche…');
-  stopScanApp();
-  try {
-    const res = await fetch(`https://world.openfoodfacts.org/api/v2/product/${ean}.json`);
-    const data = await res.json();
-    if (data.status !== 1) {
-      setScanStatus('Produit introuvable dans Open Food Facts (code : ' + ean + ').', true);
-      scanProcessing = false;
-      return;
-    }
-    await renderScannedProduct(ean, data.product);
-    setScanStatus('');
-  } catch (err) {
-    setScanStatus('Erreur réseau lors de la recherche du produit.', true);
-  }
-  scanProcessing = false;
-}
-
-async function resolveCatalogueForScan(ean, guessedNom, guessedCat) {
-  let existing = catalogue.find(p => p.ean === ean);
-  if (existing) return { id: existing.id, nom: existing.nom, categorie: existing.categorie, isNew: false };
-  existing = catalogue.find(p => p.nom.toLowerCase() === guessedNom.toLowerCase());
-  if (existing) {
-    if (!existing.ean) await updateDoc(doc(db, 'users', UID, 'catalogue', existing.id), { ean });
-    return { id: existing.id, nom: existing.nom, categorie: existing.categorie, isNew: false };
-  }
-  const ref = await addDoc(collection(db, 'users', UID, 'catalogue'), { nom: guessedNom, categorie: guessedCat, ean, createdAt: serverTimestamp() });
-  return { id: ref.id, nom: guessedNom, categorie: guessedCat, isNew: true };
-}
-
-async function renderScannedProduct(ean, p) {
-  const nom = p.product_name_fr || p.product_name || ('Produit ' + ean);
-  const guessedCat = guessCategorie(p);
-  const resolved = await resolveCatalogueForScan(ean, nom, guessedCat);
-  currentScanProduct = { ean, nom: resolved.nom, categorie: resolved.categorie, image: p.image_front_small_url || p.image_url || '' };
-
-  document.getElementById('sp-card').classList.add('show');
-  document.getElementById('sp-img').src = currentScanProduct.image;
-  document.getElementById('sp-nom').textContent = resolved.nom;
-  document.getElementById('sp-marque').textContent = p.brands || '—';
-  document.getElementById('sp-ean').textContent = 'EAN ' + ean;
-  const catLabel = (categories.find(c => c.id === resolved.categorie) || {}).label || '';
-  document.getElementById('sp-cat-note').textContent = resolved.isNew
-    ? `✅ Ajouté au catalogue dans ${catLabel}`
-    : `📦 Déjà dans votre catalogue (${catLabel})`;
-
-  document.getElementById('sp-ingredients').textContent = p.ingredients_text_fr || p.ingredients_text || 'Non renseigné.';
-  document.getElementById('sp-allergenes').textContent = (p.allergens_tags && p.allergens_tags.length)
-    ? p.allergens_tags.map(a => a.replace('en:', '')).join(', ')
-    : 'Aucun allergène signalé.';
-
-  const n = p.nutriments || {};
-  const nutriLines = [];
-  if (n['energy-kcal_100g'] != null) nutriLines.push('Énergie : ' + n['energy-kcal_100g'] + ' kcal');
-  if (n.fat_100g != null) nutriLines.push('Matières grasses : ' + n.fat_100g + ' g');
-  if (n['saturated-fat_100g'] != null) nutriLines.push('dont saturées : ' + n['saturated-fat_100g'] + ' g');
-  if (n.carbohydrates_100g != null) nutriLines.push('Glucides : ' + n.carbohydrates_100g + ' g');
-  if (n.sugars_100g != null) nutriLines.push('dont sucres : ' + n.sugars_100g + ' g');
-  if (n.proteins_100g != null) nutriLines.push('Protéines : ' + n.proteins_100g + ' g');
-  if (n.salt_100g != null) nutriLines.push('Sel : ' + n.salt_100g + ' g');
-  document.getElementById('sp-nutrition').textContent = nutriLines.length ? nutriLines.join(' — ') : 'Non renseigné.';
-
-  const badgesEl = document.getElementById('sp-badges');
-  badgesEl.innerHTML = '';
-  if (p.nutriscore_grade) badgesEl.innerHTML += `<span class="badge badge-nutri ${p.nutriscore_grade}">Nutri-Score ${p.nutriscore_grade.toUpperCase()}</span>`;
-  if (p.nova_group) badgesEl.innerHTML += `<span class="badge badge-blue">NOVA ${p.nova_group}</span>`;
-
-  document.getElementById('sp-prix-input').value = '';
-  await loadPriceHistory(ean);
-
-  if (scanTargetListId) {
-    const listeSnap = await getDocs(collection(db, 'users', UID, 'listes', scanTargetListId, 'articles'));
-    const already = listeSnap.docs.some(d => d.data().nom === resolved.nom);
-    if (!already) {
-      await addDoc(collection(db, 'users', UID, 'listes', scanTargetListId, 'articles'), { nom: resolved.nom, categorie: resolved.categorie, quantite: 1, unite: '', coche: false });
-      toast(`"${resolved.nom}" ajouté à "${scanTargetListNom}"`);
-    } else {
-      toast(`"${resolved.nom}" est déjà dans "${scanTargetListNom}"`);
-    }
-  }
-
-  document.getElementById('sp-card').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-}
-
-// --- Scanner : prix partagés (Firestore, collection commune à toute la famille) ---
-function formatDateFr(iso) {
-  if (!iso) return '';
-  const d = new Date(iso);
-  return isNaN(d) ? '' : d.toLocaleDateString('fr-FR');
-}
-
-async function loadPriceHistory(ean) {
-  const bestEl = document.getElementById('sp-best-prix');
-  const histEl = document.getElementById('sp-historique');
-  bestEl.innerHTML = ''; histEl.innerHTML = '';
-  try {
-    const snap = await getDoc(doc(db, 'prix_partages', ean));
-    if (!snap.exists()) {
-      histEl.innerHTML = '<p style="font-size:.78rem;color:var(--text3)">Aucun prix relevé pour l\'instant.</p>';
-      return;
-    }
-    const data = snap.data();
-    const hist = (data.historique || []).slice().sort((a, b) => (b.date || '').localeCompare(a.date || ''));
-    if (hist.length) {
-      const min = hist.reduce((m, h) => h.prix < m.prix ? h : m, hist[0]);
-      bestEl.innerHTML = `<div class="price-best">💰 Meilleur prix connu : ${min.prix.toFixed(2)} € ${min.prenom ? ('— relevé par ' + min.prenom) : ''}</div>`;
-      histEl.innerHTML = hist.slice(0, 5).map(h => `<div class="price-hist-row"><span class="price-hist-who">${h.prenom || 'Famille'} · ${formatDateFr(h.date)}</span><span class="price-hist-val">${h.prix.toFixed(2)} €</span></div>`).join('');
-    } else {
-      histEl.innerHTML = '<p style="font-size:.78rem;color:var(--text3)">Aucun prix relevé pour l\'instant.</p>';
-    }
-  } catch (err) {
-    console.error(err);
-    histEl.innerHTML = '<p style="font-size:.78rem;color:var(--text3)">Historique indisponible pour le moment.</p>';
-  }
-}
-
-document.getElementById('sp-save-prix-btn').onclick = async () => {
-  if (!currentScanProduct) return;
-  const val = parseFloat(document.getElementById('sp-prix-input').value);
-  if (isNaN(val) || val <= 0) { toast('Entrez un prix valide'); return; }
-  const prenom = auth.currentUser?.displayName || auth.currentUser?.email?.split('@')[0] || 'Famille';
-  const entry = { prix: val, date: new Date().toISOString(), prenom };
-  const ref = doc(db, 'prix_partages', currentScanProduct.ean);
-  try {
-    const snap = await getDoc(ref);
-    if (snap.exists()) {
-      await updateDoc(ref, {
-        nom: currentScanProduct.nom,
-        image: currentScanProduct.image,
-        dernierPrix: val,
-        dernierMaj: serverTimestamp(),
-        historique: arrayUnion(entry)
-      });
-    } else {
-      await setDoc(ref, {
-        nom: currentScanProduct.nom,
-        image: currentScanProduct.image,
-        dernierPrix: val,
-        dernierMaj: serverTimestamp(),
-        historique: [entry]
-      });
-    }
-    document.getElementById('sp-prix-input').value = '';
-    toast('✅ Prix enregistré et partagé avec la famille');
-    loadPriceHistory(currentScanProduct.ean);
-  } catch (err) {
-    console.error(err);
-    toast("Erreur : impossible d'enregistrer le prix (vérifiez les règles Firestore)");
-  }
-};
-
-// --- Scanner : ajouter le produit scanné à une liste ---
-window.addScanProductToList = async function (listeId, listNom) {
-  closeModal('listes-modal');
-  if (!currentScanProduct) return;
-  const snap = await getDocs(collection(db, 'users', UID, 'listes', listeId, 'articles'));
-  if (snap.docs.some(d => d.data().nom === currentScanProduct.nom)) { toast('Déjà dans cette liste'); return; }
-  await addDoc(collection(db, 'users', UID, 'listes', listeId, 'articles'), { nom: currentScanProduct.nom, categorie: currentScanProduct.categorie, quantite: 1, unite: '', coche: false });
-  toast(`"${currentScanProduct.nom}" ajouté à "${listNom}"`);
-};
-
-document.getElementById('sp-add-liste-btn').onclick = () => {
-  if (!currentScanProduct) { toast('Scannez un produit d\'abord'); return; }
-  const active = listes.filter(l => l.statut === 'en_cours');
-  if (!active.length) { toast("Créez d'abord une liste"); return; }
-  if (active.length === 1) return window.addScanProductToList(active[0].id, active[0].nom);
-  const c = document.getElementById('listes-choix');
-  c.innerHTML = active.map(l => `<button class="btn btn-outline btn-full" style="margin-bottom:.45rem;justify-content:flex-start;gap:.5rem" onclick="addScanProductToList('${l.id}','${esc(l.nom)}')">🛒 ${l.nom}</button>`).join('');
-  openModal('listes-modal');
-};
-
 // Events
 document.getElementById('add-produit-btn').onclick = () => window.addProduit();
 document.getElementById('clear-sel-btn').onclick = () => window.clearSel();
@@ -1651,6 +1299,253 @@ document.getElementById('creer-membre-btn').onclick = () => window.creerMembre()
 document.getElementById('logout-btn').onclick = () => window.doLogout();
 
 updateAllCategorySelects();
+
+// ============ SCAN CODE-BARRES ============
+let scanCtx = null; // 'catalogue' ou 'detail'
+let scanner = null;
+let scanProcessing = false;
+let scanLastProduct = null; // { nom, marque, imageUrl, ean, nutriscore, novaGroup, catGuess }
+
+const scanZoneEl = document.getElementById('scan-zone');
+const scanStartBtn = document.getElementById('scan-start-btn');
+const scanTorchBtn = document.getElementById('scan-torch-btn');
+const scanStatusEl = document.getElementById('scan-status');
+const scanResultCard = document.getElementById('scan-result-card');
+
+function scanSetStatus(msg, isError){
+  scanStatusEl.textContent = msg || '';
+  scanStatusEl.style.color = isError ? '#c0392b' : 'var(--text2)';
+}
+
+window.openScanModal = function(ctx){
+  scanCtx = ctx;
+  scanResultCard.style.display = 'none';
+  scanZoneEl.style.display = 'none';
+  scanZoneEl.innerHTML = '';
+  scanTorchBtn.style.display = 'none';
+  scanStartBtn.textContent = 'Démarrer la caméra';
+  scanStartBtn.classList.remove('btn-danger');
+  scanSetStatus('');
+  document.getElementById('scan-manual-ean').value = '';
+  document.getElementById('scan-modal').style.display = 'flex';
+};
+
+function closeScanModal(){
+  stopScanCamera();
+  document.getElementById('scan-modal').style.display = 'none';
+}
+
+function resetScanButtons(){
+  scanStartBtn.textContent = 'Démarrer la caméra';
+  scanStartBtn.classList.remove('btn-danger');
+  scanTorchBtn.style.display = 'none';
+  scanZoneEl.style.display = 'none';
+}
+
+function stopScanCamera(){
+  if (scanner){ scanner.stop(); scanner = null; }
+  resetScanButtons();
+}
+
+async function startScanCamera(){
+  if (scanner && scanner.isRunning) return;
+  if (typeof WebWasmBarcodeReader === 'undefined'){
+    scanSetStatus('Erreur : le moteur de scan n\'a pas pu se charger. Recharge la page.', true);
+    return;
+  }
+
+  scanSetStatus('Ouverture de la caméra…');
+  scanZoneEl.style.display = 'block';
+  scanZoneEl.innerHTML = '';
+  scanZoneEl.style.height = Math.round(scanZoneEl.getBoundingClientRect().width * 0.75) + 'px';
+  await new Promise(requestAnimationFrame);
+
+  let startupFailed = false, startupErrorMsg = '';
+
+  scanner = new WebWasmBarcodeReader.BarcodeScanner({
+    container: scanZoneEl,
+    beepOnDetect: true,
+    facingMode: 'environment',
+    scanRegion: { width: 0.88, height: 0.34 },
+    resolutionScale: 2.2,
+    onDetect: (result) => { onScanDetected(result.data); },
+    onError: (err) => {
+      console.error('Erreur scanner :', err);
+      startupFailed = true;
+      startupErrorMsg = (err && err.message) ? err.message : String(err);
+      resetScanButtons();
+    }
+  });
+
+  try{
+    await scanner.start();
+    if (startupFailed){
+      scanSetStatus('Impossible de démarrer : ' + startupErrorMsg, true);
+      scanner = null;
+    } else {
+      scanStartBtn.textContent = 'Arrêter la caméra';
+      scanStartBtn.classList.add('btn-danger');
+      scanTorchBtn.style.display = 'inline-flex';
+      scanSetStatus('Visez le code-barres…');
+    }
+  }catch(err){
+    scanSetStatus('Impossible d\'accéder à la caméra : ' + (err && err.message ? err.message : String(err)), true);
+    resetScanButtons();
+    scanner = null;
+  }
+}
+
+scanStartBtn.onclick = () => (scanner && scanner.isRunning) ? stopScanCamera() : startScanCamera();
+
+scanTorchBtn.onclick = async () => {
+  if (!scanner || !scanner.isRunning) return;
+  try{
+    const on = await scanner.toggleTorch();
+    scanTorchBtn.style.opacity = on ? '1' : '0.5';
+  }catch(err){
+    scanSetStatus('Torche non disponible sur cet appareil.', true);
+  }
+};
+
+document.getElementById('scan-manual-ean').addEventListener('keydown', e => {
+  if (e.key === 'Enter'){
+    const val = e.target.value.trim();
+    if (val) onScanDetected(val);
+  }
+});
+
+async function onScanDetected(ean){
+  if (scanProcessing) return;
+  scanProcessing = true;
+  if (navigator.vibrate) navigator.vibrate(80);
+  stopScanCamera();
+  scanSetStatus('Recherche du produit ' + ean + '…');
+
+  try{
+    const res = await fetch(`https://world.openfoodfacts.org/api/v2/product/${ean}.json`);
+    const data = await res.json();
+    if (data.status !== 1){
+      scanSetStatus('Produit introuvable (code ' + ean + '). Tu peux l\'ajouter manuellement.', true);
+      scanProcessing = false;
+      return;
+    }
+    renderScanResult(ean, data.product);
+    scanSetStatus('');
+  }catch(err){
+    scanSetStatus('Erreur réseau lors de la recherche du produit.', true);
+  }
+  scanProcessing = false;
+}
+
+// Devine grossièrement la catégorie interne à partir des catégories Open Food Facts / du nom.
+function guessCategorie(p){
+  const hay = ((p.categories || '') + ' ' + (p.product_name_fr || p.product_name || '')).toLowerCase();
+  const rules = [
+    [/fruit|pomme|banane|orange|fraise|raisin|poire|p[êe]che|kiwi|mangue|ananas|citron/, 'fruits'],
+    [/l[ée]gume|carotte|tomate|courgette|poivron|aubergine|oignon|salade|concombre|pomme de terre|brocoli/, 'legumes'],
+    [/viande|poulet|boeuf|porc|steak|saucisse|jambon|charcuterie|chorizo/, 'viande'],
+    [/poisson|saumon|thon|cabillaud|crevette|fruits de mer/, 'poisson'],
+    [/lait|yaourt|fromage|oeuf|beurre|cr[èe]me/, 'laitage'],
+    [/pain|boulangerie|viennoiserie|baguette|brioche/, 'boulangerie'],
+    [/boisson|eau|jus|soda|bi[èe]re|vin|caf[ée]|th[ée]/, 'boissons'],
+    [/hygi[èe]ne|savon|dentifrice|shampoo|shampooing|d[ée]odorant/, 'hygiene'],
+    [/entretien|lessive|nettoyant|[ée]ponge/, 'entretien'],
+  ];
+  for (const [regex, cat] of rules) if (regex.test(hay)) return cat;
+  return 'epicerie';
+}
+
+function renderScanResult(ean, p){
+  const nom = p.product_name_fr || p.product_name || ('Produit ' + ean);
+  const catGuess = guessCategorie(p);
+  scanLastProduct = {
+    nom,
+    marque: p.brands || '',
+    imageUrl: p.image_front_small_url || p.image_url || '',
+    ean,
+    nutriscore: p.nutriscore_grade || '',
+    novaGroup: p.nova_group || '',
+    catGuess
+  };
+
+  document.getElementById('scan-r-img').src = scanLastProduct.imageUrl;
+  document.getElementById('scan-r-nom').textContent = nom;
+  document.getElementById('scan-r-marque').textContent = scanLastProduct.marque || '—';
+
+  const badgesEl = document.getElementById('scan-r-badges');
+  badgesEl.innerHTML = '';
+  if (scanLastProduct.nutriscore){
+    const b = document.createElement('span');
+    b.textContent = 'Nutri-Score ' + scanLastProduct.nutriscore.toUpperCase();
+    b.style.cssText = 'font-size:.68rem;font-weight:700;padding:.15rem .4rem;border-radius:4px;background:var(--accent-light);color:var(--accent)';
+    badgesEl.appendChild(b);
+  }
+
+  const catSel = document.getElementById('scan-r-cat');
+  catSel.innerHTML = categories.map(c => `<option value="${c.id}"${c.id===catGuess?' selected':''}>${c.label}</option>`).join('');
+
+  // Préremplit le prix avec le dernier prix connu pour ce produit, si on l'a déjà vu.
+  const prixInput = document.getElementById('scan-r-prix');
+  const existingProd = catalogue.find(prod => prod.ean === ean || prod.nom.toLowerCase() === nom.toLowerCase());
+  prixInput.value = (existingProd && existingProd.prixVu != null) ? existingProd.prixVu : '';
+
+  scanResultCard.style.display = 'block';
+}
+
+document.getElementById('scan-rescan-btn').onclick = () => {
+  scanResultCard.style.display = 'none';
+  startScanCamera();
+};
+
+document.getElementById('scan-confirm-btn').onclick = async () => {
+  if (!scanLastProduct) return;
+  const cat = document.getElementById('scan-r-cat').value;
+  const prixVal = document.getElementById('scan-r-prix').value;
+  const prix = prixVal === '' ? null : parseFloat(prixVal);
+  const extra = {
+    ean: scanLastProduct.ean,
+    marque: scanLastProduct.marque || '',
+    imageUrl: scanLastProduct.imageUrl || '',
+    nutriscore: scanLastProduct.nutriscore || ''
+  };
+
+  if (scanCtx === 'catalogue'){
+    const existingProd = catalogue.find(prod => prod.nom.toLowerCase() === scanLastProduct.nom.toLowerCase());
+    if (existingProd){
+      if(prix!=null && !isNaN(prix)) await updateDoc(doc(db,'users',UID,'catalogue',existingProd.id),{prixVu:prix, prixDate:serverTimestamp(), ...extra});
+      toast('Ce produit existe déjà dans le catalogue (prix mis à jour)');
+    } else {
+      await addDoc(collection(db,'users',UID,'catalogue'), {
+        nom: scanLastProduct.nom, categorie: cat, createdAt: serverTimestamp(),
+        prixVu: (prix!=null && !isNaN(prix)) ? prix : null,
+        prixDate: (prix!=null && !isNaN(prix)) ? serverTimestamp() : null,
+        ...extra
+      });
+      toast('✅ "' + scanLastProduct.nom + '" ajouté au catalogue');
+    }
+  } else if (scanCtx === 'detail'){
+    await addDoc(collection(db,'users',UID,'listes',activeListeId,'articles'), {
+      nom: scanLastProduct.nom, categorie: cat, quantite:1, unite:'', coche:false,
+      prix: (prix!=null && !isNaN(prix)) ? prix : null,
+      ...extra
+    });
+    // Mémorise aussi ce prix comme dernier prix connu dans le catalogue (créé si besoin).
+    if(prix!=null && !isNaN(prix)){
+      const existingProd = catalogue.find(prod => prod.nom.toLowerCase() === scanLastProduct.nom.toLowerCase());
+      if(existingProd) await updateDoc(doc(db,'users',UID,'catalogue',existingProd.id),{prixVu:prix, prixDate:serverTimestamp()});
+      else await addDoc(collection(db,'users',UID,'catalogue'),{nom:scanLastProduct.nom, categorie:cat, createdAt:serverTimestamp(), prixVu:prix, prixDate:serverTimestamp(), ...extra});
+    }
+    toast('✅ "' + scanLastProduct.nom + '" ajouté à la liste');
+  }
+
+  closeScanModal();
+};
+
+document.getElementById('scan-catalogue-btn').onclick = () => window.openScanModal('catalogue');
+document.getElementById('scan-detail-btn').onclick = () => window.openScanModal('detail');
+document.getElementById('close-scan-modal').onclick = () => closeScanModal();
+// ============ FIN SCAN CODE-BARRES ============
+
 </script>
 </body>
 </html>
