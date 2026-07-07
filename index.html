@@ -968,7 +968,10 @@ window.addToSpecificList = async function(listeId, listNom) {
   for(const p of produits){
     if(!existing.has(p.nom)){
       const unite = p.prixUnite === 'kg' ? 'kg' : (p.prixUnite === 'l' ? 'L' : '');
-      await addDoc(collection(db,'users',UID,'listes',listeId,'articles'),{nom:p.nom,categorie:p.categorie,quantite:1,unite,coche:false});
+      const prixMag = (activeMagasinId && p.prixParMagasin && p.prixParMagasin[activeMagasinId] && p.prixParMagasin[activeMagasinId].prix != null)
+        ? p.prixParMagasin[activeMagasinId].prix : null;
+      const prix = prixMag != null ? prixMag : (p.prixVu != null ? p.prixVu : null);
+      await addDoc(collection(db,'users',UID,'listes',listeId,'articles'),{nom:p.nom,categorie:p.categorie,quantite:1,unite,coche:false,prix});
       added++;
     }
   }
@@ -985,7 +988,10 @@ window.addFast = async function(e, id, nom, cat) {
   if(snap.docs.some(d => d.data().nom === nom)){toast('Déjà dans la liste');return;}
   const prod = catalogue.find(p => p.id === id);
   const unite = (prod && prod.prixUnite === 'kg') ? 'kg' : (prod && prod.prixUnite === 'l') ? 'L' : '';
-  await addDoc(collection(db,'users',UID,'listes',liste.id,'articles'),{nom,categorie:cat,quantite:1,unite,coche:false});
+  const prixMag = (prod && activeMagasinId && prod.prixParMagasin && prod.prixParMagasin[activeMagasinId] && prod.prixParMagasin[activeMagasinId].prix != null)
+    ? prod.prixParMagasin[activeMagasinId].prix : null;
+  const prix = prixMag != null ? prixMag : ((prod && prod.prixVu != null) ? prod.prixVu : null);
+  await addDoc(collection(db,'users',UID,'listes',liste.id,'articles'),{nom,categorie:cat,quantite:1,unite,coche:false,prix});
   toast(`"${nom}" ajouté`);
 };
 
