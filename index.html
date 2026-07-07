@@ -75,6 +75,9 @@
   .cat-line{flex:1;height:1px;background:var(--border)}
   .prod-row{display:flex;align-items:center;gap:.6rem;padding:.45rem .6rem;border-radius:10px;transition:background .12s}
   .prod-row:hover{background:var(--surface2)}
+  .prod-thumb{width:38px;height:38px;border-radius:8px;object-fit:contain;background:#fff;border:1px solid var(--border2);flex-shrink:0}
+  .prod-thumb-empty{width:38px;height:38px;border-radius:8px;background:var(--surface2);border:1px solid var(--border2);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:1rem;opacity:.5}
+  .prod-thumb-wrap{position:relative;flex-shrink:0;cursor:pointer}
   .prod-nom{flex:1;font-size:.88rem;font-weight:500}
 
   /* Checkbox */
@@ -345,6 +348,7 @@ var Module=typeof Module!="undefined"?Module:{};var ENVIRONMENT_IS_WEB=!!globalT
       <span style="display:flex;align-items:center;gap:.4rem;color:var(--text2);font-weight:600">🏬 Magasin actif : <span id="active-magasin-label" style="color:var(--accent)">Aucun</span></span>
       <span style="color:var(--text3);font-size:.75rem">Changer</span>
     </button>
+    <input type="file" id="prod-photo-input" accept="image/*" style="display:none">
     <div class="card">
       <div class="frow">
         <input id="c-nom" placeholder="Ajouter un produit" style="flex:2">
@@ -491,6 +495,19 @@ var Module=typeof Module!="undefined"?Module:{};var ENVIRONMENT_IS_WEB=!!globalT
 </div>
 
 <!-- MODALS -->
+<div id="cat-change-modal" class="overlay">
+  <div class="modal">
+    <div class="modal-drag"></div>
+    <div class="modal-title" id="cat-change-titre">Catégorie du produit</div>
+    <p style="color:var(--text2);font-size:.82rem;margin-bottom:1rem">En cas d'erreur de rangement, choisissez la bonne catégorie.</p>
+    <select id="cat-change-select" style="margin-bottom:1.1rem"></select>
+    <div style="display:flex;gap:.5rem">
+      <button class="btn btn-outline btn-full" id="close-cat-change-modal">Annuler</button>
+      <button class="btn btn-primary btn-full" id="save-cat-change-modal">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
 <div id="prix-modal" class="overlay">
   <div class="modal">
     <div class="modal-drag"></div>
@@ -715,7 +732,7 @@ function confirmAction(title, msg, callback) {
 }
 
 // Fermer modal en cliquant l'overlay
-['categories-modal','confirm-modal','listes-modal','magasins-modal','prix-modal'].forEach(id => {
+['categories-modal','confirm-modal','listes-modal','magasins-modal','prix-modal','cat-change-modal'].forEach(id => {
   document.getElementById(id).addEventListener('click', e => {
     if(e.target.id === id) closeModal(id);
   });
@@ -793,6 +810,69 @@ window.delProduit = function(id, nom) {
     toast('Produit supprimé');
   });
 };
+
+// --- Changer la catégorie d'un produit (correction d'erreur de rangement) ---
+let catChangeProdId = null;
+window.openCatChangeModal = function(id) {
+  const p = catalogue.find(x => x.id === id);
+  if(!p) return;
+  catChangeProdId = id;
+  document.getElementById('cat-change-titre').textContent = 'Catégorie — ' + p.nom;
+  const sel = document.getElementById('cat-change-select');
+  sel.innerHTML = categories.map(c => `<option value="${c.id}"${c.id===p.categorie?' selected':''}>${c.label}</option>`).join('');
+  openModal('cat-change-modal');
+};
+document.getElementById('save-cat-change-modal').onclick = async () => {
+  if(!catChangeProdId) return;
+  const newCat = document.getElementById('cat-change-select').value;
+  await updateDoc(doc(db,'users',UID,'catalogue',catChangeProdId),{categorie:newCat});
+  closeModal('cat-change-modal');
+  toast('✅ Catégorie mise à jour');
+};
+document.getElementById('close-cat-change-modal').onclick = () => closeModal('cat-change-modal');
+
+// --- Photo manuelle d'un produit (caméra ou galerie), utile quand il n'y a pas eu de scan ---
+let photoTargetProdId = null;
+window.openProdPhotoPicker = function(id) {
+  photoTargetProdId = id;
+  document.getElementById('prod-photo-input').click();
+};
+function resizeImageToDataUrl(file, maxSize, quality) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(new Error('Lecture du fichier impossible'));
+    reader.onload = ev => {
+      const img = new Image();
+      img.onerror = () => reject(new Error('Image invalide'));
+      img.onload = () => {
+        let w = img.width, h = img.height;
+        if(w > h){ if(w > maxSize){ h = Math.round(h*maxSize/w); w = maxSize; } }
+        else { if(h > maxSize){ w = Math.round(w*maxSize/h); h = maxSize; } }
+        const canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        canvas.getContext('2d').drawImage(img,0,0,w,h);
+        resolve(canvas.toDataURL('image/jpeg', quality));
+      };
+      img.src = ev.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+document.getElementById('prod-photo-input').addEventListener('change', async e => {
+  const file = e.target.files[0];
+  e.target.value = ''; // permet de resélectionner le même fichier une prochaine fois
+  const targetId = photoTargetProdId;
+  if(!file || !targetId) return;
+  toast('Traitement de la photo…');
+  try {
+    const dataUrl = await resizeImageToDataUrl(file, 240, 0.7);
+    await updateDoc(doc(db,'users',UID,'catalogue',targetId),{imageUrl: dataUrl});
+    toast('✅ Photo enregistrée');
+  } catch(err) {
+    console.error(err);
+    toast('Erreur : photo non enregistrée');
+  }
+});
 
 // --- Édition de prix (à la pièce / au poids / au volume) depuis le catalogue ---
 let prixModalProdId = null;
@@ -904,10 +984,16 @@ function renderCatalogue() {
       } else {
         prixLine = `<div style="font-size:.72rem;color:var(--text3);cursor:pointer" onclick="event.stopPropagation();openPrixModal('${p.id}')">+ Ajouter un prix</div>`;
       }
+      const thumb = `<div class="prod-thumb-wrap" onclick="event.stopPropagation();openProdPhotoPicker('${p.id}')" title="Ajouter/changer la photo">
+        ${p.imageUrl ? `<img class="prod-thumb" src="${p.imageUrl}" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">` : ''}
+        <div class="prod-thumb-empty" style="${p.imageUrl ? 'display:none' : 'display:flex'}">📷</div>
+      </div>`;
       html += `<div class="prod-row">
         <div class="chk ${isSel?'on':''}" onclick="toggleSel('${p.id}')"><svg viewBox="0 0 13 13" fill="none" stroke="white" stroke-width="2.5"><path d="M2 7L5 10L11 3"/></svg></div>
+        ${thumb}
         <div class="prod-nom">${p.nom}${prixLine}</div>
         <button class="btn btn-outline btn-sm" style="color:var(--accent);border-color:var(--accent-light)" onclick="addFast(event,'${p.id}','${esc(p.nom)}','${p.categorie}')">+ Liste</button>
+        <button class="btn btn-icon btn-sm" style="color:var(--text2)" title="Changer de catégorie" onclick="event.stopPropagation();openCatChangeModal('${p.id}')">🏷️</button>
         <button class="btn btn-icon btn-sm" style="color:var(--red)" onclick="delProduit('${p.id}','${esc(p.nom)}')">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/></svg>
         </button>
@@ -1733,8 +1819,12 @@ document.getElementById('scan-confirm-btn').onclick = async () => {
   if (scanCtx === 'catalogue'){
     const existingProd = catalogue.find(prod => prod.nom.toLowerCase() === scanLastProduct.nom.toLowerCase());
     if (existingProd){
-      if(prixOk) await updateDoc(doc(db,'users',UID,'catalogue',existingProd.id),{...prixFields(), ...extra});
-      toast('Ce produit existe déjà dans le catalogue (prix mis à jour)');
+      // La photo (et la marque/nutriscore) issues du scan sont toujours mises à jour,
+      // même si aucun prix n'a été saisi cette fois-ci.
+      const fields = {...extra};
+      if(prixOk) Object.assign(fields, prixFields());
+      await updateDoc(doc(db,'users',UID,'catalogue',existingProd.id), fields);
+      toast('Ce produit existe déjà dans le catalogue (photo/prix mis à jour)');
     } else {
       await addDoc(collection(db,'users',UID,'catalogue'), {
         nom: scanLastProduct.nom, categorie: cat, createdAt: serverTimestamp(),
@@ -1753,14 +1843,17 @@ document.getElementById('scan-confirm-btn').onclick = async () => {
       prix: prixOk ? prix : null,
       ...extra
     });
-    // Mémorise aussi ce prix comme prix connu (par magasin + fallback global) dans le catalogue (créé si besoin).
-    if(prixOk){
-      const existingProd = catalogue.find(prod => prod.nom.toLowerCase() === scanLastProduct.nom.toLowerCase());
-      if(existingProd) await updateDoc(doc(db,'users',UID,'catalogue',existingProd.id),prixFields());
-      else await addDoc(collection(db,'users',UID,'catalogue'),{
+    // Répercute aussi la photo (et le prix si saisi) sur le produit du catalogue, créé si besoin.
+    const existingProd = catalogue.find(prod => prod.nom.toLowerCase() === scanLastProduct.nom.toLowerCase());
+    if(existingProd){
+      const fields = {...extra};
+      if(prixOk) Object.assign(fields, prixFields());
+      await updateDoc(doc(db,'users',UID,'catalogue',existingProd.id), fields);
+    } else {
+      await addDoc(collection(db,'users',UID,'catalogue'),{
         nom:scanLastProduct.nom, categorie:cat, createdAt:serverTimestamp(),
-        prixVu:prix, prixDate:serverTimestamp(), prixUnite,
-        prixParMagasin: magSel ? {[magSel]: {prix, date: serverTimestamp()}} : {},
+        prixVu: prixOk ? prix : null, prixDate: prixOk ? serverTimestamp() : null, prixUnite,
+        prixParMagasin: (prixOk && magSel) ? {[magSel]: {prix, date: serverTimestamp()}} : {},
         ...extra
       });
     }
