@@ -155,11 +155,7 @@
 
   /* Profil avatar */
   .avatar{width:52px;height:52px;border-radius:14px;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:1.2rem;font-weight:800;color:#fff;font-family:var(--ff-serif)}
-  .compte-card{display:flex;align-items:center;gap:.9rem;padding:.9rem 1rem;border:1.5px solid var(--border2);border-radius:14px;margin-bottom:.8rem;cursor:pointer;transition:border-color .12s}
-  .compte-card:hover{border-color:var(--accent)}
-  .compte-avatar{width:52px;height:52px;border-radius:14px;background:var(--accent-light);color:var(--accent);display:flex;align-items:center;justify-content:center;font-size:1.05rem;font-weight:800;flex-shrink:0}
-  .compte-nom{font-weight:800;font-size:1rem;color:var(--text)}
-  .compte-role{font-size:.82rem;color:var(--text2);margin-top:.1rem}
+  .p-avatar-sm{width:34px;height:34px;border-radius:10px;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:.78rem;font-weight:800;color:#fff;font-family:var(--ff-serif);flex-shrink:0}
 
   /* Row */
   .frow{display:flex;gap:.5rem;align-items:flex-end;flex-wrap:wrap}
@@ -346,8 +342,8 @@ var Module=typeof Module!="undefined"?Module:{};var ENVIRONMENT_IS_WEB=!!globalT
     <div class="page-header">
       <div class="page-title">Catalogue</div>
       <div style="display:flex;gap:.4rem">
+        <button class="btn btn-outline btn-sm" id="quick-import-btn">⚡ Import rapide</button>
         <button class="btn btn-outline btn-sm" id="manage-cats-btn">Catégories</button>
-        <button class="btn btn-outline btn-sm" id="manage-import-btn">Import rapide</button>
       </div>
     </div>
     <button class="btn btn-outline btn-sm btn-full" id="manage-magasins-btn" style="margin-bottom:.7rem;justify-content:space-between;padding:.55rem .8rem">
@@ -418,14 +414,6 @@ var Module=typeof Module!="undefined"?Module:{};var ENVIRONMENT_IS_WEB=!!globalT
       </div>
     </div>
 
-    <div id="p-compte-section" style="display:none">
-      <div class="section-title">Compte actif</div>
-      <button class="btn btn-outline btn-full" id="switch-compte-btn" style="justify-content:space-between;padding:.7rem .9rem">
-        <span id="p-compte-actif-label" style="font-weight:600"></span>
-        <span style="color:var(--text3);font-size:.75rem">Changer</span>
-      </button>
-    </div>
-
     <div class="section-title">Modifier le prénom</div>
     <div class="card">
       <div class="frow">
@@ -441,14 +429,17 @@ var Module=typeof Module!="undefined"?Module:{};var ENVIRONMENT_IS_WEB=!!globalT
       <button class="btn btn-outline btn-sm" id="update-pwd-btn">Modifier le mot de passe</button>
     </div>
 
-    <div class="section-title">Ajouter un membre</div>
-    <div class="card">
-      <p style="font-size:.78rem;color:var(--text2);margin-bottom:.8rem">Crée un accès pour un membre de la famille. Il pourra se connecter et choisir "Compte famille" pour voir et modifier les mêmes listes/catalogue que vous.</p>
+    <div class="section-title" id="membres-section-title">Ajouter un membre</div>
+    <div class="card" id="membres-add-card">
+      <p style="font-size:.78rem;color:var(--text2);margin-bottom:.8rem">Créez un compte pour un membre de la famille — il rejoindra automatiquement votre foyer partagé (même catalogue, mêmes listes).</p>
       <div style="margin-bottom:.55rem"><input id="m-prenom" placeholder="Prénom"></div>
       <div style="margin-bottom:.55rem"><input id="m-email" type="email" placeholder="Email"></div>
       <div style="margin-bottom:.8rem"><input id="m-pwd" type="password" placeholder="Mot de passe"></div>
       <button class="btn btn-primary btn-sm" id="creer-membre-btn">Créer le compte</button>
     </div>
+
+    <div class="section-title" id="membres-list-title">Membres du foyer</div>
+    <div class="card" id="membres-list"></div>
 
     <div style="height:.5rem"></div>
     <button class="btn btn-danger btn-full" id="logout-btn" style="padding:.75rem">Se déconnecter</button>
@@ -509,38 +500,6 @@ var Module=typeof Module!="undefined"?Module:{};var ENVIRONMENT_IS_WEB=!!globalT
 </div>
 
 <!-- MODALS -->
-<div id="compte-modal" class="overlay">
-  <div class="modal">
-    <div class="modal-drag"></div>
-    <div class="modal-title">Quel compte ?</div>
-    <p style="color:var(--text2);font-size:.85rem;margin-bottom:1.1rem">Vous avez accès à plusieurs comptes. Lequel voulez-vous utiliser ?</p>
-    <div id="compte-list"></div>
-  </div>
-</div>
-
-<div id="import-modal" class="overlay">
-  <div class="modal">
-    <div class="modal-drag"></div>
-    <div class="modal-title">Import rapide</div>
-    <p style="color:var(--text2);font-size:.82rem;margin-bottom:.8rem">
-      Collez une liste de produits (un par ligne), prix à la fin. Ex :<br>
-      <code style="font-size:.74rem;color:var(--text2)">Yaourt nature x8 2.15</code><br>
-      <code style="font-size:.74rem;color:var(--text2)">Tomates grappe 2.90 €/kg</code>
-    </p>
-    <div class="frow" style="margin-bottom:.7rem">
-      <select id="import-magasin" style="flex:1"></select>
-    </div>
-    <textarea id="import-textarea" rows="6" style="width:100%;margin-bottom:.8rem;padding:.6rem .7rem;border-radius:12px;border:1.5px solid var(--border2);font-family:inherit;font-size:.85rem;resize:vertical;background:var(--surface);color:var(--text)" placeholder="Collez votre liste ici…"></textarea>
-    <button class="btn btn-primary btn-full" id="import-analyze-btn" style="margin-bottom:1rem">Analyser</button>
-    <div id="import-preview" style="max-height:320px;overflow-y:auto"></div>
-    <p id="import-hint" style="color:var(--text3);font-size:.75rem;margin:.6rem 0;display:none">Vérifiez et corrigez chaque ligne si besoin avant d'importer (nom, prix, unité, catégorie).</p>
-    <div style="display:flex;gap:.5rem;margin-top:.4rem">
-      <button class="btn btn-outline btn-full" id="close-import-modal">Fermer</button>
-      <button class="btn btn-primary btn-full" id="import-confirm-btn" style="display:none">Importer tout</button>
-    </div>
-  </div>
-</div>
-
 <div id="cat-change-modal" class="overlay">
   <div class="modal">
     <div class="modal-drag"></div>
@@ -629,6 +588,33 @@ var Module=typeof Module!="undefined"?Module:{};var ENVIRONMENT_IS_WEB=!!globalT
   </div>
 </div>
 
+<div id="import-modal" class="overlay">
+  <div class="modal" style="max-width:560px">
+    <div class="modal-drag"></div>
+    <div class="modal-title">⚡ Import rapide</div>
+    <p style="color:var(--text2);font-size:.82rem;margin-bottom:.9rem">
+      Collez votre liste (une ligne par produit, prix optionnel en fin de ligne — ex: <em>Nutella 400g  4,99€</em>). L'appli devine la catégorie et le prix automatiquement.
+    </p>
+    <textarea id="import-textarea" rows="6" placeholder="Nutella 400g 4,99€
+Lait demi-écrémé 1L 1,15
+Baguette
+Yaourts nature x8 2,35 €" style="width:100%;padding:.7rem .9rem;border:1.5px solid var(--border);border-radius:var(--rs);background:var(--surface);font-family:var(--ff);font-size:.85rem;resize:vertical;outline:none"></textarea>
+    <div style="display:flex;gap:.5rem;margin-top:.7rem">
+      <button class="btn btn-outline btn-full" id="close-import-modal">Fermer</button>
+      <button class="btn btn-primary btn-full" id="import-analyze-btn">Analyser</button>
+    </div>
+
+    <div id="import-preview-wrap" style="display:none;margin-top:1.1rem;border-top:1px dashed var(--border2);padding-top:1rem">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.6rem">
+        <span id="import-summary" style="font-size:.8rem;color:var(--text2);font-weight:600"></span>
+        <button class="btn btn-ghost btn-sm" id="import-toggle-all-btn" style="color:var(--accent)">Tout / Aucun</button>
+      </div>
+      <div id="import-rows-list" style="max-height:340px;overflow-y:auto;display:flex;flex-direction:column;gap:.4rem"></div>
+      <button class="btn btn-primary btn-full" id="import-confirm-btn" style="margin-top:1rem">Ajouter au catalogue</button>
+    </div>
+  </div>
+</div>
+
 <div id="scan-modal" class="overlay">
   <div class="modal" style="max-width:480px">
     <div class="modal-drag"></div>
@@ -686,7 +672,7 @@ var Module=typeof Module!="undefined"?Module:{};var ENVIRONMENT_IS_WEB=!!globalT
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
 import { getAuth, signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged, updateProfile, updatePassword, EmailAuthProvider, reauthenticateWithCredential, createUserWithEmailAndPassword } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
-import { getFirestore, collection, doc, addDoc, updateDoc, deleteDoc, onSnapshot, serverTimestamp, getDocs, writeBatch, getDoc, setDoc } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+import { getFirestore, collection, doc, addDoc, updateDoc, deleteDoc, onSnapshot, serverTimestamp, getDocs, getDoc, setDoc, writeBatch } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 
 const FB = {
   apiKey:"AIzaSyDMHRowm0gRH09w6qzRf89SWtE_y89KcZY",
@@ -701,8 +687,17 @@ const app = initializeApp(FB);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-let UID = null, authUID = null, activeListeId = null;
-let comptesDisponibles = []; // [{id, nom, role}] — role: 'admin' | 'partage'
+// App Firebase secondaire : permet de créer un compte membre sans perdre la session admin en cours
+let secondaryAuth = null;
+function getSecondaryAuth() {
+  if (!secondaryAuth) {
+    const secondaryApp = initializeApp(FB, 'secondary-' + Date.now());
+    secondaryAuth = getAuth(secondaryApp);
+  }
+  return secondaryAuth;
+}
+
+let UID = null, HID = null, activeListeId = null;
 let catalogue = [], listes = [], dossiers = [], articles = [];
 let magasins = [];
 let activeMagasinId = localStorage.getItem('activeMagasinId') || null;
@@ -770,6 +765,8 @@ document.getElementById('confirm-no').onclick = () => closeModal('confirm-modal'
 document.getElementById('close-listes-modal').onclick = () => closeModal('listes-modal');
 document.getElementById('close-cats-modal').onclick = () => closeModal('categories-modal');
 document.getElementById('close-magasins-modal').onclick = () => closeModal('magasins-modal');
+document.getElementById('close-import-modal').onclick = () => closeModal('import-modal');
+document.getElementById('quick-import-btn').onclick = () => openModal('import-modal');
 
 function confirmAction(title, msg, callback) {
   document.getElementById('confirm-title').textContent = title;
@@ -803,7 +800,7 @@ window.goPage = function(page) {
 window.openDetail = function(listeId) {
   activeListeId = listeId;
   if(unsubArt) unsubArt();
-  unsubArt = onSnapshot(collection(db,'users',UID,'listes',listeId,'articles'), snap => {
+  unsubArt = onSnapshot(collection(db,'households',HID,'listes',listeId,'articles'), snap => {
     articles = snap.docs.map(d => ({id:d.id,...d.data()}));
     renderDetail();
   });
@@ -826,7 +823,7 @@ window.printListe = function() {
   const date = new Date().toLocaleDateString('fr-FR');
   let body = '';
   for(const cat of categories){
-    const items = articles.filter(a => a.categorie === cat.id);
+    const items = articles.filter(a => a.categorie === cat.id).sort((a,b) => a.nom.localeCompare(b.nom, 'fr'));
     if(!items.length) continue;
     body += `<div class="cat">${cat.label}</div>`;
     for(const a of items)
@@ -844,14 +841,14 @@ window.addProduit = async function() {
   const cat = document.getElementById('c-cat').value;
   if(!nom){toast('Entrez un nom');return;}
   if(catalogue.some(p => p.nom.toLowerCase() === nom.toLowerCase())){toast('Ce produit existe déjà');return;}
-  await addDoc(collection(db,'users',UID,'catalogue'),{nom,categorie:cat,createdAt:serverTimestamp()});
+  await addDoc(collection(db,'households',HID,'catalogue'),{nom,categorie:cat,createdAt:serverTimestamp()});
   document.getElementById('c-nom').value = '';
   toast('Produit ajouté');
 };
 
 window.delProduit = function(id, nom) {
   confirmAction('Supprimer',`Supprimer "${nom}" du catalogue ?`, async () => {
-    await deleteDoc(doc(db,'users',UID,'catalogue',id));
+    await deleteDoc(doc(db,'households',HID,'catalogue',id));
     selectedIds.delete(id);
     updateSelBar();
     toast('Produit supprimé');
@@ -872,124 +869,11 @@ window.openCatChangeModal = function(id) {
 document.getElementById('save-cat-change-modal').onclick = async () => {
   if(!catChangeProdId) return;
   const newCat = document.getElementById('cat-change-select').value;
-  await updateDoc(doc(db,'users',UID,'catalogue',catChangeProdId),{categorie:newCat});
+  await updateDoc(doc(db,'households',HID,'catalogue',catChangeProdId),{categorie:newCat});
   closeModal('cat-change-modal');
   toast('✅ Catégorie mise à jour');
 };
 document.getElementById('close-cat-change-modal').onclick = () => closeModal('cat-change-modal');
-
-// --- Import rapide : coller une liste "nom + prix" et créer/mettre à jour le catalogue ---
-let importParsed = [];
-window.openImportModal = function() {
-  document.getElementById('import-textarea').value = '';
-  document.getElementById('import-preview').innerHTML = '';
-  document.getElementById('import-hint').style.display = 'none';
-  document.getElementById('import-confirm-btn').style.display = 'none';
-  importParsed = [];
-  const sel = document.getElementById('import-magasin');
-  const opts = ['<option value="">Sans magasin précis</option>']
-    .concat(magasins.map(m => `<option value="${m.id}"${m.id===activeMagasinId?' selected':''}>${m.nom}</option>`));
-  sel.innerHTML = opts.join('');
-  openModal('import-modal');
-};
-function parseImportLine(line) {
-  line = line.trim();
-  if(!line) return null;
-  // Cherche un prix : dernier nombre de la ligne, avec € et unité (/kg, /L) optionnels.
-  const m = line.match(/(\d+(?:[.,]\d{1,2})?)\s*€?\s*(\/\s*(kg|l|litre))?\s*$/i);
-  let prix = null, prixUnite = 'piece', nom = line;
-  if(m && m[1]){
-    prix = parseFloat(m[1].replace(',', '.'));
-    if(m[3]){
-      prixUnite = m[3].toLowerCase() === 'kg' ? 'kg' : 'l';
-    } else if(/\/\s*kg|au\s*kg|le\s*kg/i.test(line)){
-      prixUnite = 'kg';
-    } else if(/\/\s*l\b|au\s*litre|le\s*litre/i.test(line)){
-      prixUnite = 'l';
-    }
-    nom = line.slice(0, m.index).trim().replace(/[-–—:,\s]+$/,'').trim();
-  }
-  if(!nom) nom = line;
-  const categorie = guessCategorie({product_name_fr: nom});
-  return {nom, prix, prixUnite, categorie};
-}
-document.getElementById('import-analyze-btn').onclick = () => {
-  const lines = document.getElementById('import-textarea').value.split('\n');
-  importParsed = lines.map(parseImportLine).filter(Boolean);
-  renderImportPreview();
-};
-function renderImportPreview() {
-  const el = document.getElementById('import-preview');
-  const hint = document.getElementById('import-hint');
-  const confirmBtn = document.getElementById('import-confirm-btn');
-  if(!importParsed.length){
-    el.innerHTML = '<div class="empty" style="padding:1rem"><p>Aucune ligne détectée. Collez du texte puis touchez "Analyser".</p></div>';
-    hint.style.display = 'none';
-    confirmBtn.style.display = 'none';
-    return;
-  }
-  hint.style.display = 'block';
-  confirmBtn.style.display = 'block';
-  const catOpts = categories.map(c => `<option value="${c.id}">${c.label}</option>`).join('');
-  el.innerHTML = importParsed.map((it,i) => `
-    <div style="border:1px solid var(--border2);border-radius:12px;padding:.6rem;margin-bottom:.6rem">
-      <div class="frow" style="margin-bottom:.4rem">
-        <input value="${esc(it.nom)}" oninput="updateImportField(${i},'nom',this.value)" style="flex:2">
-        <button class="btn btn-icon btn-sm" style="color:var(--red);flex:none" onclick="removeImportRow(${i})">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/></svg>
-        </button>
-      </div>
-      <div class="frow">
-        <select onchange="updateImportField(${i},'categorie',this.value)" style="flex:1">${catOpts.replace(`value="${it.categorie}"`, `value="${it.categorie}" selected`)}</select>
-        <select onchange="updateImportField(${i},'prixUnite',this.value)" style="flex:1">
-          <option value="piece"${it.prixUnite==='piece'?' selected':''}>À la pièce</option>
-          <option value="kg"${it.prixUnite==='kg'?' selected':''}>Au kg</option>
-          <option value="l"${it.prixUnite==='l'?' selected':''}>Au litre</option>
-        </select>
-        <input type="number" step="0.01" min="0" value="${it.prix != null ? it.prix : ''}" placeholder="Prix" oninput="updateImportField(${i},'prix',this.value)" style="flex:1">
-      </div>
-    </div>`).join('');
-}
-window.updateImportField = function(i, field, value) {
-  if(!importParsed[i]) return;
-  importParsed[i][field] = field === 'prix' ? (value === '' ? null : parseFloat(value)) : value;
-};
-window.removeImportRow = function(i) {
-  importParsed.splice(i,1);
-  renderImportPreview();
-};
-document.getElementById('import-confirm-btn').onclick = async () => {
-  const magSel = document.getElementById('import-magasin').value;
-  let created = 0, updated = 0;
-  for(const it of importParsed){
-    const nom = (it.nom || '').trim();
-    if(!nom) continue;
-    const prixOk = it.prix != null && !isNaN(it.prix);
-    const existingProd = catalogue.find(p => p.nom.toLowerCase() === nom.toLowerCase());
-    if(existingProd){
-      const fields = { prixUnite: it.prixUnite };
-      if(prixOk){
-        fields.prixVu = it.prix;
-        fields.prixDate = serverTimestamp();
-        if(magSel) fields['prixParMagasin.' + magSel] = { prix: it.prix, date: serverTimestamp() };
-      }
-      await updateDoc(doc(db,'users',UID,'catalogue',existingProd.id), fields);
-      updated++;
-    } else {
-      await addDoc(collection(db,'users',UID,'catalogue'), {
-        nom, categorie: it.categorie || 'autre', createdAt: serverTimestamp(),
-        prixVu: prixOk ? it.prix : null,
-        prixDate: prixOk ? serverTimestamp() : null,
-        prixUnite: it.prixUnite,
-        prixParMagasin: (prixOk && magSel) ? {[magSel]: {prix: it.prix, date: serverTimestamp()}} : {}
-      });
-      created++;
-    }
-  }
-  closeModal('import-modal');
-  toast(`✅ ${created} ajouté(s), ${updated} mis à jour`);
-};
-document.getElementById('close-import-modal').onclick = () => closeModal('import-modal');
 
 // --- Photo manuelle d'un produit (caméra ou galerie), utile quand il n'y a pas eu de scan ---
 let photoTargetProdId = null;
@@ -1026,7 +910,7 @@ document.getElementById('prod-photo-input').addEventListener('change', async e =
   toast('Traitement de la photo…');
   try {
     const dataUrl = await resizeImageToDataUrl(file, 240, 0.7);
-    await updateDoc(doc(db,'users',UID,'catalogue',targetId),{imageUrl: dataUrl});
+    await updateDoc(doc(db,'households',HID,'catalogue',targetId),{imageUrl: dataUrl});
     toast('✅ Photo enregistrée');
   } catch(err) {
     console.error(err);
@@ -1062,7 +946,7 @@ document.getElementById('save-prix-modal').onclick = async () => {
     fields.prixDate = serverTimestamp();
     if(activeMagasinId) fields['prixParMagasin.' + activeMagasinId] = { prix, date: serverTimestamp() };
   }
-  await updateDoc(doc(db,'users',UID,'catalogue',prixModalProdId), fields);
+  await updateDoc(doc(db,'households',HID,'catalogue',prixModalProdId), fields);
   closeModal('prix-modal');
   toast('✅ Prix enregistré');
 };
@@ -1092,13 +976,16 @@ window.addSelectedToList = async function() {
 window.addToSpecificList = async function(listeId, listNom) {
   closeModal('listes-modal');
   const produits = catalogue.filter(p => selectedIds.has(p.id));
-  const snap = await getDocs(collection(db,'users',UID,'listes',listeId,'articles'));
+  const snap = await getDocs(collection(db,'households',HID,'listes',listeId,'articles'));
   const existing = new Set(snap.docs.map(d => d.data().nom));
   let added = 0;
   for(const p of produits){
     if(!existing.has(p.nom)){
       const unite = p.prixUnite === 'kg' ? 'kg' : (p.prixUnite === 'l' ? 'L' : '');
-      await addDoc(collection(db,'users',UID,'listes',listeId,'articles'),{nom:p.nom,categorie:p.categorie,quantite:1,unite,coche:false});
+      const prixMag = (activeMagasinId && p.prixParMagasin && p.prixParMagasin[activeMagasinId] && p.prixParMagasin[activeMagasinId].prix != null)
+        ? p.prixParMagasin[activeMagasinId].prix : null;
+      const prix = prixMag != null ? prixMag : (p.prixVu != null ? p.prixVu : null);
+      await addDoc(collection(db,'households',HID,'listes',listeId,'articles'),{nom:p.nom,categorie:p.categorie,quantite:1,unite,coche:false,prix});
       added++;
     }
   }
@@ -1111,11 +998,14 @@ window.addFast = async function(e, id, nom, cat) {
   const active = listes.filter(l => l.statut === 'en_cours');
   if(!active.length){toast('Créez une liste d\'abord');return;}
   const liste = active[0];
-  const snap = await getDocs(collection(db,'users',UID,'listes',liste.id,'articles'));
+  const snap = await getDocs(collection(db,'households',HID,'listes',liste.id,'articles'));
   if(snap.docs.some(d => d.data().nom === nom)){toast('Déjà dans la liste');return;}
   const prod = catalogue.find(p => p.id === id);
   const unite = (prod && prod.prixUnite === 'kg') ? 'kg' : (prod && prod.prixUnite === 'l') ? 'L' : '';
-  await addDoc(collection(db,'users',UID,'listes',liste.id,'articles'),{nom,categorie:cat,quantite:1,unite,coche:false});
+  const prixMag = (prod && activeMagasinId && prod.prixParMagasin && prod.prixParMagasin[activeMagasinId] && prod.prixParMagasin[activeMagasinId].prix != null)
+    ? prod.prixParMagasin[activeMagasinId].prix : null;
+  const prix = prixMag != null ? prixMag : ((prod && prod.prixVu != null) ? prod.prixVu : null);
+  await addDoc(collection(db,'households',HID,'listes',liste.id,'articles'),{nom,categorie:cat,quantite:1,unite,coche:false,prix});
   toast(`"${nom}" ajouté`);
 };
 
@@ -1128,7 +1018,7 @@ function renderCatalogue() {
   }
   let html = '';
   for(const cat of categories){
-    const items = filtered.filter(p => p.categorie === cat.id);
+    const items = filtered.filter(p => p.categorie === cat.id).sort((a,b) => a.nom.localeCompare(b.nom, 'fr'));
     if(!items.length) continue;
     html += `<div class="cat-group"><div class="cat-header"><span class="cat-label">${cat.label}</span><div class="cat-line"></div></div>`;
     for(const p of items){
@@ -1164,19 +1054,144 @@ function renderCatalogue() {
   document.getElementById('cat-list').innerHTML = html;
 }
 
+// --- Import rapide ---
+let importRows = [];
+
+function extractTrailingPrice(line) {
+  // Prix explicite avec symbole € en fin de ligne (ex: "4,99 €" ou "4,99€")
+  let m = line.match(/(\d+(?:[.,]\d{1,2})?)\s*€\s*$/);
+  if (m) return { price: parseFloat(m[1].replace(',', '.')), rest: line.slice(0, m.index).trim() };
+  // Sinon un nombre décimal en toute fin de ligne (ex: "1,15" ou "1.15")
+  m = line.match(/(\d+[.,]\d{1,2})\s*$/);
+  if (m) return { price: parseFloat(m[1].replace(',', '.')), rest: line.slice(0, m.index).trim() };
+  return { price: null, rest: line.trim() };
+}
+
+function parseQuickImportText(text) {
+  const rawLines = text.split('\n').map(l => l.trim()).filter(l => l.length);
+  const results = [];
+  let pendingName = null;
+  const onlyPriceRegex = /^(\d+(?:[.,]\d{1,2})?)\s*€?$/;
+  for (const line of rawLines) {
+    const onlyPriceMatch = line.match(onlyPriceRegex);
+    if (onlyPriceMatch && pendingName) {
+      results.push({ nom: pendingName, prix: parseFloat(onlyPriceMatch[1].replace(',', '.')) });
+      pendingName = null;
+      continue;
+    }
+    const { price, rest } = extractTrailingPrice(line);
+    const nom = rest.replace(/[-–:•\s]+$/, '').trim();
+    if (!nom) continue;
+    if (price != null) {
+      if (pendingName) { results.push({ nom: pendingName, prix: null }); pendingName = null; }
+      results.push({ nom, prix: price });
+    } else {
+      if (pendingName) results.push({ nom: pendingName, prix: null });
+      pendingName = nom;
+    }
+  }
+  if (pendingName) results.push({ nom: pendingName, prix: null });
+  return results.map(r => ({
+    nom: r.nom,
+    prix: r.prix,
+    categorie: guessCategorie({ product_name_fr: r.nom }),
+    include: true
+  }));
+}
+
+window.toggleImportRow = function(i) {
+  importRows[i].include = !importRows[i].include;
+  renderImportPreview();
+};
+window.removeImportRow = function(i) {
+  importRows.splice(i, 1);
+  renderImportPreview();
+};
+window.updateImportRowField = function(i, field, value) {
+  if (field === 'prix') importRows[i].prix = value === '' ? null : parseFloat(value.replace(',', '.'));
+  else importRows[i][field] = value;
+};
+window.toggleImportAll = function() {
+  const allOn = importRows.every(r => r.include);
+  importRows.forEach(r => r.include = !allOn);
+  renderImportPreview();
+};
+
+function renderImportPreview() {
+  const wrap = document.getElementById('import-preview-wrap');
+  if (!importRows.length) { wrap.style.display = 'none'; return; }
+  wrap.style.display = 'block';
+  const selected = importRows.filter(r => r.include).length;
+  document.getElementById('import-summary').textContent = `${importRows.length} produit${importRows.length>1?'s':''} détecté${importRows.length>1?'s':''} · ${selected} sélectionné${selected>1?'s':''}`;
+  let html = '';
+  importRows.forEach((r, i) => {
+    const catOpts = categories.map(c => `<option value="${c.id}"${c.id===r.categorie?' selected':''}>${c.label}</option>`).join('');
+    html += `<div class="prod-row" style="background:var(--surface2);border-radius:10px;flex-wrap:wrap">
+      <div class="chk ${r.include?'on':''}" onclick="toggleImportRow(${i})"><svg viewBox="0 0 13 13" fill="none" stroke="white" stroke-width="2.5"><path d="M2 7L5 10L11 3"/></svg></div>
+      <input value="${r.nom.replace(/"/g,'&quot;')}" oninput="updateImportRowField(${i},'nom',this.value)" style="flex:2;min-width:110px;padding:.4rem .6rem;font-size:.82rem">
+      <select onchange="updateImportRowField(${i},'categorie',this.value)" style="flex:1;min-width:120px;padding:.4rem .6rem;font-size:.8rem">${catOpts}</select>
+      <input type="number" step="0.01" min="0" placeholder="Prix €" value="${r.prix!=null?r.prix:''}" oninput="updateImportRowField(${i},'prix',this.value)" style="width:80px;padding:.4rem .5rem;font-size:.82rem">
+      <button class="btn btn-icon btn-sm" style="color:var(--red)" onclick="removeImportRow(${i})">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/></svg>
+      </button>
+    </div>`;
+  });
+  document.getElementById('import-rows-list').innerHTML = html;
+}
+
+document.getElementById('import-analyze-btn').onclick = () => {
+  const text = document.getElementById('import-textarea').value;
+  if (!text.trim()) { toast('Collez d\'abord une liste de produits'); return; }
+  importRows = parseQuickImportText(text);
+  if (!importRows.length) { toast('Aucun produit détecté'); return; }
+  renderImportPreview();
+};
+document.getElementById('import-toggle-all-btn').onclick = () => toggleImportAll();
+
+document.getElementById('import-confirm-btn').onclick = async () => {
+  const toAdd = importRows.filter(r => r.include && r.nom.trim());
+  if (!toAdd.length) { toast('Sélectionnez au moins un produit'); return; }
+  const batch = writeBatch(db);
+  let created = 0, updated = 0;
+  for (const r of toAdd) {
+    const existing = catalogue.find(p => p.nom.toLowerCase() === r.nom.trim().toLowerCase());
+    if (existing) {
+      const fields = {};
+      if (r.prix != null && !isNaN(r.prix)) { fields.prixVu = r.prix; fields.prixDate = serverTimestamp(); }
+      if (Object.keys(fields).length) batch.update(doc(db,'households',HID,'catalogue',existing.id), fields);
+      updated++;
+    } else {
+      const ref = doc(collection(db,'households',HID,'catalogue'));
+      batch.set(ref, {
+        nom: r.nom.trim(), categorie: r.categorie, createdAt: serverTimestamp(),
+        prixVu: (r.prix!=null && !isNaN(r.prix)) ? r.prix : null,
+        prixDate: (r.prix!=null && !isNaN(r.prix)) ? serverTimestamp() : null,
+        prixUnite: 'piece', prixParMagasin: {}
+      });
+      created++;
+    }
+  }
+  await batch.commit();
+  toast(`✅ ${created} ajouté${created>1?'s':''}, ${updated} mis à jour`);
+  importRows = [];
+  document.getElementById('import-textarea').value = '';
+  document.getElementById('import-preview-wrap').style.display = 'none';
+  closeModal('import-modal');
+};
+
 // --- Listes ---
 window.addListe = async function() {
   const nom = document.getElementById('i-liste').value.trim();
   const dossier = document.getElementById('i-liste-dossier').value;
   if(!nom){toast('Entrez un nom');return;}
-  const ref = await addDoc(collection(db,'users',UID,'listes'),{nom,dossier,statut:'en_cours',createdAt:serverTimestamp()});
+  const ref = await addDoc(collection(db,'households',HID,'listes'),{nom,dossier,statut:'en_cours',createdAt:serverTimestamp()});
   document.getElementById('i-liste').value = '';
   openDetail(ref.id);
 };
 
 window.toggleListeStatus = async function(id, current) {
   const newStatus = current === 'terminee' ? 'en_cours' : 'terminee';
-  await updateDoc(doc(db,'users',UID,'listes',id),{statut:newStatus});
+  await updateDoc(doc(db,'households',HID,'listes',id),{statut:newStatus});
   toast(newStatus === 'terminee' ? '✅ Courses terminées !' : '🔄 Liste réouverte');
   if(activeListeId === id) renderDetailHeader();
 };
@@ -1184,16 +1199,16 @@ window.toggleListeStatus = async function(id, current) {
 window.renommerListe = async function(id, oldName) {
   const newName = prompt('Nouveau nom :', oldName);
   if(!newName?.trim()) return;
-  await updateDoc(doc(db,'users',UID,'listes',id),{nom:newName.trim()});
+  await updateDoc(doc(db,'households',HID,'listes',id),{nom:newName.trim()});
 };
 
 window.supprimerListe = async function(id, nom) {
   confirmAction('Supprimer',`Supprimer "${nom}" définitivement ?`, async () => {
-    const articlesRef = collection(db,'users',UID,'listes',id,'articles');
+    const articlesRef = collection(db,'households',HID,'listes',id,'articles');
     const snap = await getDocs(articlesRef);
     const batch = writeBatch(db);
     snap.docs.forEach(d => batch.delete(d.ref));
-    batch.delete(doc(db,'users',UID,'listes',id));
+    batch.delete(doc(db,'households',HID,'listes',id));
     await batch.commit();
     if(activeListeId === id) closeDetail();
     toast('Liste supprimée');
@@ -1245,13 +1260,13 @@ window.addDossier = async function() {
   const nom = document.getElementById('i-dossier').value.trim();
   if(!nom){toast('Entrez un nom');return;}
   if(dossiers.some(d => d.nom === nom)){toast('Ce dossier existe déjà');return;}
-  await addDoc(collection(db,'users',UID,'dossiers'),{nom,createdAt:serverTimestamp()});
+  await addDoc(collection(db,'households',HID,'dossiers'),{nom,createdAt:serverTimestamp()});
   document.getElementById('i-dossier').value = '';
   toast(`Dossier "${nom}" créé`);
 };
 window.delDossier = async function(id, nom) {
   confirmAction('Supprimer',`Supprimer le dossier "${nom}" ?`, async () => {
-    await deleteDoc(doc(db,'users',UID,'dossiers',id));
+    await deleteDoc(doc(db,'households',HID,'dossiers',id));
   });
 };
 function updateDossierSelects() {
@@ -1281,25 +1296,25 @@ window.addCategory = async function() {
   if(!newName){toast('Entrez un nom');return;}
   if(categories.some(c => c.label === newName)){toast('Cette catégorie existe déjà');return;}
   const newId = 'cat_' + Date.now();
-  await addDoc(collection(db,'users',UID,'categories'),{id:newId,label:newName,createdAt:serverTimestamp()});
+  await addDoc(collection(db,'households',HID,'categories'),{id:newId,label:newName,createdAt:serverTimestamp()});
   document.getElementById('new-cat-name').value = '';
   toast('Catégorie ajoutée');
 };
 window.updateCategory = async function(catId, inputId) {
   const newLabel = document.getElementById(inputId).value.trim();
   if(!newLabel) return;
-  await updateDoc(doc(db,'users',UID,'categories',catId),{label:newLabel});
+  await updateDoc(doc(db,'households',HID,'categories',catId),{label:newLabel});
   toast('Catégorie modifiée');
 };
 window.deleteCategory = async function(catId) {
   confirmAction('Supprimer','Les produits de cette catégorie passeront en "Autre"', async () => {
-    await deleteDoc(doc(db,'users',UID,'categories',catId));
+    await deleteDoc(doc(db,'households',HID,'categories',catId));
     toast('Catégorie supprimée');
   });
 };
 function initCategoriesListener() {
   if(unsubCategories) unsubCategories();
-  unsubCategories = onSnapshot(collection(db,'users',UID,'categories'), snap => {
+  unsubCategories = onSnapshot(collection(db,'households',HID,'categories'), snap => {
     const userCats = snap.docs.map(d => ({id:d.data().id,label:d.data().label}));
     categories = [...DEFAULT_CATEGORIES];
     for(const uc of userCats) if(!DEFAULT_CATEGORIES.some(d => d.id === uc.id)) categories.push(uc);
@@ -1340,7 +1355,7 @@ window.addMagasin = async function() {
   const nom = document.getElementById('new-magasin-name').value.trim();
   if(!nom){toast('Entrez un nom de magasin');return;}
   if(magasins.some(m => m.nom.toLowerCase() === nom.toLowerCase())){toast('Ce magasin existe déjà');return;}
-  const ref = await addDoc(collection(db,'users',UID,'magasins'),{nom,createdAt:serverTimestamp()});
+  const ref = await addDoc(collection(db,'households',HID,'magasins'),{nom,createdAt:serverTimestamp()});
   document.getElementById('new-magasin-name').value = '';
   toast('Magasin ajouté');
   // Si c'est le premier magasin créé, on l'active automatiquement.
@@ -1352,13 +1367,14 @@ window.selectMagasin = function(id) {
   updateActiveMagasinLabel();
   renderMagasinsList();
   renderCatalogue();
+  if(activeListeId) renderDetailHeader();
   closeModal('magasins-modal');
   const m = magasins.find(x => x.id === id);
   if(m) toast('🏬 Magasin actif : ' + m.nom);
 };
 window.deleteMagasin = async function(id, nom) {
   confirmAction('Supprimer', `Supprimer "${nom}" ? Les prix déjà enregistrés pour ce magasin resteront dans l'historique des produits mais ne seront plus modifiables depuis ce magasin.`, async () => {
-    await deleteDoc(doc(db,'users',UID,'magasins',id));
+    await deleteDoc(doc(db,'households',HID,'magasins',id));
     if(activeMagasinId === id){
       activeMagasinId = null;
       localStorage.removeItem('activeMagasinId');
@@ -1383,7 +1399,7 @@ function updateScanMagasinSelect() {
 }
 function initMagasinsListener() {
   if(unsubMagasins) unsubMagasins();
-  unsubMagasins = onSnapshot(collection(db,'users',UID,'magasins'), snap => {
+  unsubMagasins = onSnapshot(collection(db,'households',HID,'magasins'), snap => {
     magasins = snap.docs.map(d => ({id:d.id,...d.data()}));
     if(activeMagasinId && !magasins.some(m => m.id === activeMagasinId)){
       activeMagasinId = null;
@@ -1396,6 +1412,27 @@ function initMagasinsListener() {
 }
 
 // --- Détail liste ---
+function computeMagasinComparison() {
+  return magasins.map(m => {
+    let total = 0, exact = 0, estime = 0, missing = 0;
+    for (const a of articles) {
+      const prod = catalogue.find(p => p.nom.toLowerCase() === a.nom.toLowerCase());
+      const q = a.quantite || 1;
+      let prix = null, isExact = false;
+      if (prod && prod.prixParMagasin && prod.prixParMagasin[m.id] && prod.prixParMagasin[m.id].prix != null) {
+        prix = prod.prixParMagasin[m.id].prix; isExact = true;
+      } else if (prod && prod.prixVu != null) {
+        prix = prod.prixVu;
+      } else if (a.prix != null) {
+        prix = a.prix;
+      }
+      if (prix != null) { total += prix * q; isExact ? exact++ : estime++; }
+      else missing++;
+    }
+    return { magasin: m, total, exact, estime, missing, known: exact + estime };
+  }).sort((a, b) => a.total - b.total);
+}
+
 function renderDetailHeader() {
   const liste = listes.find(l => l.id === activeListeId);
   if(!liste) return;
@@ -1430,6 +1467,30 @@ function renderDetailHeader() {
         <span style="font-weight:700;color:var(--accent);font-size:1rem">${totalPrix.toFixed(2)} €</span>
       </div>`;
     })()}
+    ${(() => {
+      if(!total || magasins.length < 2) return '';
+      const comparaison = computeMagasinComparison().filter(c => c.known > 0);
+      if(comparaison.length < 2) return '';
+      const rows = comparaison.map((c,i) => {
+        const isBest = i === 0;
+        const isActive = c.magasin.id === activeMagasinId;
+        const detail = [];
+        if(c.exact) detail.push(`${c.exact} exact${c.exact>1?'s':''}`);
+        if(c.estime) detail.push(`${c.estime} estimé${c.estime>1?'s':''}`);
+        if(c.missing) detail.push(`${c.missing} inconnu${c.missing>1?'s':''}`);
+        return `<div style="display:flex;justify-content:space-between;align-items:center;padding:.35rem .15rem;cursor:pointer" onclick="selectMagasin('${c.magasin.id}')">
+          <span style="font-size:.8rem;${isActive?'font-weight:700':''}">${isBest?'🏆 ':''}${c.magasin.nom}${isActive?' <span style="color:var(--text3);font-weight:400">(actuel)</span>':''}</span>
+          <span style="text-align:right">
+            <div style="font-weight:700;font-size:.85rem;${isBest?'color:var(--accent)':'color:var(--text)'}">${c.total.toFixed(2)} €</div>
+            <div style="font-size:.65rem;color:var(--text3)">${detail.join(' · ')}</div>
+          </span>
+        </div>`;
+      }).join('<div style="border-top:1px dashed var(--border)"></div>');
+      return `<div style="background:var(--surface2);border-radius:10px;padding:.55rem .65rem;margin-bottom:.8rem">
+        <div style="font-size:.7rem;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.25rem">📊 Comparatif magasins</div>
+        ${rows}
+      </div>`;
+    })()}
   `;
 }
 
@@ -1445,14 +1506,19 @@ window.renderAvailableProducts = function() {
   const available = catalogue.filter(p => !existing.has(p.nom) && p.nom.toLowerCase().includes(search));
   let html = '';
   for(const cat of categories){
-    const items = available.filter(p => p.categorie === cat.id);
+    const items = available.filter(p => p.categorie === cat.id).sort((a,b) => a.nom.localeCompare(b.nom, 'fr'));
     if(!items.length) continue;
     html += `<div class="cat-header" style="padding:.4rem 0 .2rem"><span class="cat-label">${cat.label}</span><div class="cat-line"></div></div>`;
-    for(const p of items)
+    for(const p of items){
+      const availThumb = p.imageUrl
+        ? `<img class="prod-thumb" src="${p.imageUrl}" alt="" style="width:30px;height:30px" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><div class="prod-thumb-empty" style="display:none;width:30px;height:30px">📷</div>`
+        : `<div class="prod-thumb-empty" style="width:30px;height:30px">📷</div>`;
       html += `<div class="prod-row" style="cursor:pointer" onclick="addToCurrentList('${p.id}','${esc(p.nom)}','${p.categorie}')">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+        <div class="prod-thumb-wrap" style="width:30px;height:30px">${availThumb}</div>
         <span class="prod-nom">${p.nom}</span>
       </div>`;
+    }
   }
   document.getElementById('d-cat-list').innerHTML = html || '<p style="text-align:center;color:var(--text3);padding:.8rem;font-size:.85rem">Aucun produit disponible</p>';
 };
@@ -1463,7 +1529,7 @@ window.addToCurrentList = async function(id, nom, cat) {
     ? prod.prixParMagasin[activeMagasinId].prix : null;
   const prix = prixMag != null ? prixMag : ((prod && prod.prixVu != null) ? prod.prixVu : null);
   const unite = (prod && prod.prixUnite === 'kg') ? 'kg' : (prod && prod.prixUnite === 'l') ? 'L' : '';
-  await addDoc(collection(db,'users',UID,'listes',activeListeId,'articles'),{nom,categorie:cat,quantite:1,unite,coche:false,prix});
+  await addDoc(collection(db,'households',HID,'listes',activeListeId,'articles'),{nom,categorie:cat,quantite:1,unite,coche:false,prix});
   toast(`"${nom}" ajouté`);
 };
 
@@ -1471,28 +1537,28 @@ window.addManualProduct = async function() {
   const nom = document.getElementById('d-man-nom').value.trim();
   const cat = document.getElementById('d-man-cat').value;
   if(!nom){toast('Entrez un nom');return;}
-  await addDoc(collection(db,'users',UID,'listes',activeListeId,'articles'),{nom,categorie:cat,quantite:1,unite:'',coche:false});
+  await addDoc(collection(db,'households',HID,'listes',activeListeId,'articles'),{nom,categorie:cat,quantite:1,unite:'',coche:false});
   document.getElementById('d-man-nom').value = '';
   toast(`"${nom}" ajouté`);
 };
 
 window.toggleCheck = async function(id, current) {
-  await updateDoc(doc(db,'users',UID,'listes',activeListeId,'articles',id),{coche:!current});
+  await updateDoc(doc(db,'households',HID,'listes',activeListeId,'articles',id),{coche:!current});
 };
 
 window.changeQuantity = async function(id, value) {
   let qty = parseFloat(value);
   if(isNaN(qty)||qty<0) qty = 0;
-  await updateDoc(doc(db,'users',UID,'listes',activeListeId,'articles',id),{quantite:qty});
+  await updateDoc(doc(db,'households',HID,'listes',activeListeId,'articles',id),{quantite:qty});
 };
 
 window.changeUnit = async function(id, unit) {
-  await updateDoc(doc(db,'users',UID,'listes',activeListeId,'articles',id),{unite:unit});
+  await updateDoc(doc(db,'households',HID,'listes',activeListeId,'articles',id),{unite:unit});
 };
 
 window.changePrix = async function(id, value) {
   const prix = value === '' ? null : parseFloat(value);
-  await updateDoc(doc(db,'users',UID,'listes',activeListeId,'articles',id),{prix: (prix==null||isNaN(prix)) ? null : prix});
+  await updateDoc(doc(db,'households',HID,'listes',activeListeId,'articles',id),{prix: (prix==null||isNaN(prix)) ? null : prix});
   // Mémorise ce prix comme "dernier prix connu" du produit dans le catalogue (et pour le magasin actif si défini),
   // pour préremplir la prochaine fois.
   if(prix!=null && !isNaN(prix)){
@@ -1502,7 +1568,7 @@ window.changePrix = async function(id, value) {
       if(prod){
         const fields = {prixVu: prix, prixDate: serverTimestamp()};
         if(activeMagasinId) fields['prixParMagasin.' + activeMagasinId] = {prix, date: serverTimestamp()};
-        await updateDoc(doc(db,'users',UID,'catalogue',prod.id),fields);
+        await updateDoc(doc(db,'households',HID,'catalogue',prod.id),fields);
       }
     }
   }
@@ -1510,7 +1576,7 @@ window.changePrix = async function(id, value) {
 
 window.deleteArticle = function(id, nom) {
   confirmAction('Retirer',`Retirer "${nom}" de la liste ?`, async () => {
-    await deleteDoc(doc(db,'users',UID,'listes',activeListeId,'articles',id));
+    await deleteDoc(doc(db,'households',HID,'listes',activeListeId,'articles',id));
   });
 };
 
@@ -1521,16 +1587,21 @@ function renderDetail() {
   const units = ['','kg','g','L','cl','pièce(s)','boîte(s)','sachet(s)','bouteille(s)'];
   let html = '';
   for(const cat of categories){
-    const items = articles.filter(a => a.categorie === cat.id);
+    const items = articles.filter(a => a.categorie === cat.id).sort((a,b) => a.nom.localeCompare(b.nom, 'fr'));
     if(!items.length) continue;
     html += `<div class="cat-header" style="padding:.5rem 0 .25rem"><span class="cat-label">${cat.label}</span><div class="cat-line"></div></div>`;
     for(const a of items){
       const unitOpts = units.map(u => `<option value="${u}" ${a.unite===u?'selected':''}>${u||'—'}</option>`).join('');
+      const artImg = a.imageUrl || (catalogue.find(p => p.nom.toLowerCase() === a.nom.toLowerCase()) || {}).imageUrl;
+      const artThumb = artImg
+        ? `<img class="prod-thumb" src="${artImg}" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><div class="prod-thumb-empty" style="display:none">🛒</div>`
+        : `<div class="prod-thumb-empty">🛒</div>`;
       html += `<div class="article-card ${a.coche?'done':''}">
         <div class="article-row">
           <div class="chk ${a.coche?'on':''}" onclick="${isTerminee?'':`toggleCheck('${a.id}',${a.coche})`}">
             <svg viewBox="0 0 13 13" fill="none" stroke="white" stroke-width="2.5"><path d="M2 7L5 10L11 3"/></svg>
           </div>
+          <div class="prod-thumb-wrap">${artThumb}</div>
           <div class="article-info">
             <span class="article-name" style="${a.coche?'text-decoration:line-through':''}">${a.nom}</span>
             ${!isTerminee ? `
@@ -1556,25 +1627,23 @@ function renderDetail() {
 function updateProfilUI() {
   const user = auth.currentUser;
   if(!user) return;
+  const isGoogle = user.providerData[0]?.providerId === 'google.com';
   const nom = user.displayName || user.email?.split('@')[0] || '?';
   document.getElementById('p-avatar').textContent = nom.slice(0,2).toUpperCase();
   document.getElementById('p-nom').textContent = (user.displayName || 'Utilisateur')
-    + (user.providerData[0]?.providerId === 'google.com' ? ' 🔑' : '');
+    + (isGoogle ? ' 🔑' : '');
   document.getElementById('p-email').textContent = user.email
-    + (user.providerData[0]?.providerId === 'google.com' ? '  •  Google' : '');
+    + (isGoogle ? '  •  Google' : '');
   document.getElementById('p-new-nom').value = user.displayName || '';
   // Masquer la section mot de passe pour les comptes Google
   const pwdSection = document.getElementById('pwd-section');
-  if(pwdSection) pwdSection.style.display = user.providerData[0]?.providerId === 'google.com' ? 'none' : '';
-  // Affiche le sélecteur de compte actif seulement si plusieurs comptes sont accessibles
-  const compteSection = document.getElementById('p-compte-section');
-  if(comptesDisponibles.length > 1){
-    compteSection.style.display = 'block';
-    const actif = comptesDisponibles.find(c => c.id === UID);
-    document.getElementById('p-compte-actif-label').textContent = '🏠 ' + (actif ? actif.nom : 'Mon compte');
-  } else {
-    compteSection.style.display = 'none';
-  }
+  if(pwdSection) pwdSection.style.display = isGoogle ? 'none' : '';
+  // Seul l'admin (compte Google, propriétaire du foyer) peut créer des membres
+  const addCard = document.getElementById('membres-add-card');
+  const addTitle = document.getElementById('membres-section-title');
+  if(addCard) addCard.style.display = isGoogle ? '' : 'none';
+  if(addTitle) addTitle.style.display = isGoogle ? '' : 'none';
+  renderMembresList();
 }
 
 window.updateNom = async function() {
@@ -1608,42 +1677,39 @@ window.creerMembre = async function() {
   const pwd = document.getElementById('m-pwd').value;
   if(!prenom||!email||!pwd){toast('Remplissez tous les champs');return;}
   if(pwd.length<6){toast('Mot de passe trop court (6 min)');return;}
-  const adminAuthUID = authUID; // capturé avant la création, qui change la session active
   try {
-    // 1. S'assure que le "Compte famille" partagé existe déjà pour l'admin, sinon le crée.
-    // comptes = tableau d'objets {id,nom,role} pour l'affichage.
-    // comptesIds = même liste d'ids, à plat, utilisée par les règles Firestore (plus simple/sûr à vérifier).
-    let familyId;
-    const adminAccesSnap = await getDoc(doc(db,'acces',adminAuthUID));
-    const familleExistante = adminAccesSnap.exists() && (adminAccesSnap.data().comptes||[]).find(c => c.role === 'partage');
-    if(familleExistante){
-      familyId = familleExistante.id;
-    } else {
-      familyId = 'famille_' + adminAuthUID.slice(0,8) + '_' + Date.now().toString(36);
-      await setDoc(doc(db,'acces',adminAuthUID), {
-        comptes: [{ id: familyId, nom: 'Compte famille', role: 'partage' }],
-        comptesIds: [familyId]
-      }, { merge: true });
-    }
-
-    // 2. Crée le compte du membre (ceci connecte automatiquement en tant que ce nouveau membre).
-    const userCred = await createUserWithEmailAndPassword(auth,email,pwd);
-    await updateProfile(userCred.user,{displayName:prenom});
-
-    // 3. Donne à ce nouveau membre l'accès au même Compte famille partagé.
-    await setDoc(doc(db,'acces',userCred.user.uid), {
-      comptes: [{ id: familyId, nom: 'Compte famille', role: 'partage' }],
-      comptesIds: [familyId]
-    }, { merge: true });
-
-    toast(`✅ ${prenom} peut se connecter et choisir "Compte famille"`);
+    // Créé via une session Firebase secondaire pour ne pas déconnecter l'admin
+    const sAuth = getSecondaryAuth();
+    const userCred = await createUserWithEmailAndPassword(sAuth, email, pwd);
+    await updateProfile(userCred.user, {displayName: prenom});
+    const memberUID = userCred.user.uid;
+    await sAuth.signOut();
+    // Rattache le nouveau membre au foyer partagé de l'admin actuellement connecté
+    await setDoc(doc(db,'households',HID,'membres',memberUID), {prenom, email, createdAt: serverTimestamp()});
+    await setDoc(doc(db,'memberIndex',memberUID), {householdId: HID, createdAt: serverTimestamp()});
+    toast(`✅ Compte créé pour ${prenom}, rattaché au foyer !`);
     ['m-prenom','m-email','m-pwd'].forEach(id => document.getElementById(id).value = '');
-    await signOut(auth);
+    renderMembresList();
   } catch(e) {
-    console.error(e);
-    toast(e.code==='auth/email-already-in-use'?'Email déjà utilisé':'Erreur lors de la création');
+    toast(e.code==='auth/email-already-in-use'?'Email déjà utilisé':'Erreur');
   }
 };
+
+let unsubMembres = null;
+function renderMembresList() {
+  const el = document.getElementById('membres-list');
+  if(!el || !HID) return;
+  if(unsubMembres) unsubMembres();
+  unsubMembres = onSnapshot(collection(db,'households',HID,'membres'), snap => {
+    const membres = snap.docs.map(d => ({id:d.id,...d.data()}));
+    el.innerHTML = membres.length
+      ? membres.map(m => `<div style="display:flex;align-items:center;gap:.5rem;padding:.4rem 0">
+          <div class="p-avatar-sm">${(m.prenom||'?').slice(0,2).toUpperCase()}</div>
+          <div><div style="font-size:.85rem;font-weight:600">${m.prenom}</div><div style="font-size:.72rem;color:var(--text2)">${m.email}</div></div>
+        </div>`).join('')
+      : '<p style="font-size:.8rem;color:var(--text3)">Aucun membre pour le moment.</p>';
+  });
+}
 
 window.doLogout = async function() {
   await signOut(auth);
@@ -1653,28 +1719,61 @@ window.doLogout = async function() {
 // --- Init ---
 function esc(s) { return String(s).replace(/'/g,"\\'"); }
 
+async function migrateLegacyUserData() {
+  try {
+    const newCatSnap = await getDocs(collection(db,'households',HID,'catalogue'));
+    if(!newCatSnap.empty) return; // déjà migré (ou foyer déjà alimenté)
+    const oldCatSnap = await getDocs(collection(db,'users',UID,'catalogue'));
+    if(oldCatSnap.empty) return; // rien à migrer
+
+    toast('🔄 Migration de vos données existantes vers le foyer partagé…');
+    const ops = [];
+    oldCatSnap.docs.forEach(d => ops.push([doc(db,'households',HID,'catalogue',d.id), d.data()]));
+    for(const coll of ['dossiers','categories','magasins']){
+      const snap = await getDocs(collection(db,'users',UID,coll));
+      snap.docs.forEach(d => ops.push([doc(db,'households',HID,coll,d.id), d.data()]));
+    }
+    const listesSnap = await getDocs(collection(db,'users',UID,'listes'));
+    for(const l of listesSnap.docs){
+      ops.push([doc(db,'households',HID,'listes',l.id), l.data()]);
+      const artSnap = await getDocs(collection(db,'users',UID,'listes',l.id,'articles'));
+      artSnap.docs.forEach(a => ops.push([doc(db,'households',HID,'listes',l.id,'articles',a.id), a.data()]));
+    }
+
+    for(let i=0; i<ops.length; i+=400){
+      const batch = writeBatch(db);
+      ops.slice(i,i+400).forEach(([ref,data]) => batch.set(ref,data));
+      await batch.commit();
+    }
+    toast(`✅ ${ops.length} élément(s) migré(s) vers le foyer partagé !`);
+  } catch(e) {
+    console.error('Migration error', e);
+    toast('⚠️ Erreur lors de la migration de vos anciennes données');
+  }
+}
+
 async function initializeDefaultCatalogue() {
-  const snap = await getDocs(collection(db,'users',UID,'catalogue'));
+  const snap = await getDocs(collection(db,'households',HID,'catalogue'));
   if(snap.empty){
     toast('Chargement du catalogue…');
     for(const p of DEFAULT_PRODUITS)
-      await addDoc(collection(db,'users',UID,'catalogue'),{...p,createdAt:serverTimestamp()});
+      await addDoc(collection(db,'households',HID,'catalogue'),{...p,createdAt:serverTimestamp()});
     toast(`✅ ${DEFAULT_PRODUITS.length} produits chargés !`);
   }
 }
 
 function startListeners() {
-  unsubCat = onSnapshot(collection(db,'users',UID,'catalogue'), snap => {
+  unsubCat = onSnapshot(collection(db,'households',HID,'catalogue'), snap => {
     catalogue = snap.docs.map(d => ({id:d.id,...d.data()}));
     renderCatalogue();
     if(document.getElementById('add-body')?.style.display === 'block') renderAvailableProducts();
   });
-  unsubListes = onSnapshot(collection(db,'users',UID,'listes'), snap => {
+  unsubListes = onSnapshot(collection(db,'households',HID,'listes'), snap => {
     listes = snap.docs.map(d => ({id:d.id,...d.data()}));
     renderListes();
     if(activeListeId) renderDetailHeader();
   });
-  unsubDoss = onSnapshot(collection(db,'users',UID,'dossiers'), snap => {
+  unsubDoss = onSnapshot(collection(db,'households',HID,'dossiers'), snap => {
     dossiers = snap.docs.map(d => ({id:d.id,...d.data()}));
     updateDossierSelects();
   });
@@ -1682,7 +1781,7 @@ function startListeners() {
   initMagasinsListener();
 }
 function stopListeners() {
-  [unsubCat,unsubListes,unsubDoss,unsubArt,unsubCategories,unsubMagasins].forEach(u => u && u());
+  [unsubCat,unsubListes,unsubDoss,unsubArt,unsubCategories,unsubMagasins,unsubMembres].forEach(u => u && u());
 }
 
 // --- Auth ---
@@ -1735,92 +1834,38 @@ document.getElementById('auth-btn').onclick = async () => {
 document.getElementById('i-pwd').addEventListener('keydown', e => { if(e.key==='Enter') document.getElementById('auth-btn').click(); });
 document.getElementById('new-magasin-name').addEventListener('keydown', e => { if(e.key==='Enter') window.addMagasin(); });
 
-// --- Multi-comptes (compte personnel + éventuel compte famille partagé) ---
-function initiales(nom) {
-  const mots = (nom || '?').trim().split(/\s+/);
-  if(mots.length >= 2) return (mots[0][0] + mots[1][0]).toUpperCase();
-  return (mots[0].slice(0,2) || '?').toUpperCase();
-}
-
-// Récupère la liste des comptes accessibles pour l'utilisateur connecté :
-// toujours son propre compte, plus les comptes partagés déclarés dans acces/{authUID}.comptes
-async function chargerComptesDisponibles(user) {
-  const perso = { id: user.uid, nom: user.displayName || 'Mon compte', role: 'admin' };
-  let comptes = [perso];
-  try {
-    const accesSnap = await getDoc(doc(db,'acces',user.uid));
-    if(accesSnap.exists() && Array.isArray(accesSnap.data().comptes)){
-      comptes = comptes.concat(accesSnap.data().comptes);
-    }
-  } catch(e) { console.warn('Lecture des accès partagés impossible :', e); }
-  return comptes;
-}
-
-function showCompteChooser(comptes) {
-  const list = document.getElementById('compte-list');
-  list.innerHTML = comptes.map(c => `
-    <div class="compte-card" onclick="selectCompte('${c.id}')">
-      <div class="compte-avatar">${initiales(c.nom)}</div>
-      <div>
-        <div class="compte-nom">${c.nom}</div>
-        <div class="compte-role">${c.role === 'admin' ? 'Mon compte (admin)' : 'Compte partagé'}</div>
-      </div>
-    </div>`).join('');
-  openModal('compte-modal');
-}
-
-window.selectCompte = function(id) {
-  UID = id;
-  localStorage.setItem('activeSpace_' + authUID, id);
-  closeModal('compte-modal');
-  demarrerAvecCompte();
-};
-
-// Ouvre le sélecteur pour changer de compte à tout moment (bouton dans Profil)
-window.openCompteChooser = function() {
-  if(comptesDisponibles.length <= 1) return;
-  showCompteChooser(comptesDisponibles);
-};
-
-// Démarre (ou redémarre) l'appli une fois l'espace de données (UID) déterminé
-async function demarrerAvecCompte() {
-  stopListeners();
-  updateProfilUI();
-  startListeners();
-  await initializeDefaultCatalogue();
-  goPage('catalogue');
-}
-
 onAuthStateChanged(auth, async user => {
   // Masquer le spinner Google dans tous les cas
   const spinEl = document.getElementById('google-spinner');
   if(spinEl) spinEl.classList.remove('on');
 
   if(user){
-    authUID = user.uid;
+    UID = user.uid;
+    const isGoogle = user.providerData[0]?.providerId === 'google.com';
+    if(isGoogle){
+      // L'admin est propriétaire de son foyer : HID = son propre UID
+      HID = UID;
+      await setDoc(doc(db,'households',HID), {adminUID: HID, updatedAt: serverTimestamp()}, {merge:true});
+      await migrateLegacyUserData();
+    } else {
+      // Un membre rejoint le foyer auquel l'admin l'a rattaché
+      try {
+        const idxSnap = await getDoc(doc(db,'memberIndex',UID));
+        HID = idxSnap.exists() ? idxSnap.data().householdId : UID;
+        if(!idxSnap.exists()) toast('⚠️ Compte non rattaché à un foyer, contactez l\'administrateur');
+      } catch(e) {
+        HID = UID;
+      }
+    }
     document.getElementById('auth-screen').style.display = 'none';
     document.getElementById('app-screen').style.display = 'flex';
-
-    comptesDisponibles = await chargerComptesDisponibles(user);
-    if(comptesDisponibles.length > 1){
-      const remembered = localStorage.getItem('activeSpace_' + authUID);
-      const rememberedValide = remembered && comptesDisponibles.some(c => c.id === remembered);
-      if(rememberedValide){
-        UID = remembered;
-        await demarrerAvecCompte();
-      } else {
-        showCompteChooser(comptesDisponibles);
-        // demarrerAvecCompte() sera appelé par selectCompte() une fois le choix fait
-      }
-    } else {
-      UID = authUID;
-      await demarrerAvecCompte();
-    }
+    updateProfilUI();
+    startListeners();
+    await initializeDefaultCatalogue();
+    goPage('catalogue');
   } else {
     stopListeners();
-    UID = null;
-    authUID = null;
-    comptesDisponibles = [];
+    UID = null; HID = null;
     document.getElementById('auth-screen').style.display = 'flex';
     document.getElementById('app-screen').style.display = 'none';
   }
@@ -1840,14 +1885,12 @@ document.getElementById('d-search').oninput = () => renderAvailableProducts();
 document.getElementById('f-statut').onchange = () => renderListes();
 document.getElementById('f-dossier').onchange = () => renderListes();
 document.getElementById('manage-cats-btn').onclick = () => window.openCategoriesManager();
-document.getElementById('manage-import-btn').onclick = () => window.openImportModal();
 document.getElementById('manage-magasins-btn').onclick = () => window.openMagasinsManager();
 document.getElementById('add-magasin-btn').onclick = () => window.addMagasin();
 document.getElementById('add-cat-btn').onclick = () => window.addCategory();
 document.getElementById('update-nom-btn').onclick = () => window.updateNom();
 document.getElementById('update-pwd-btn').onclick = () => window.updatePwd();
 document.getElementById('creer-membre-btn').onclick = () => window.creerMembre();
-document.getElementById('switch-compte-btn').onclick = () => window.openCompteChooser();
 document.getElementById('logout-btn').onclick = () => window.doLogout();
 
 updateAllCategorySelects();
@@ -2090,10 +2133,10 @@ document.getElementById('scan-confirm-btn').onclick = async () => {
       // même si aucun prix n'a été saisi cette fois-ci.
       const fields = {...extra};
       if(prixOk) Object.assign(fields, prixFields());
-      await updateDoc(doc(db,'users',UID,'catalogue',existingProd.id), fields);
+      await updateDoc(doc(db,'households',HID,'catalogue',existingProd.id), fields);
       toast('Ce produit existe déjà dans le catalogue (photo/prix mis à jour)');
     } else {
-      await addDoc(collection(db,'users',UID,'catalogue'), {
+      await addDoc(collection(db,'households',HID,'catalogue'), {
         nom: scanLastProduct.nom, categorie: cat, createdAt: serverTimestamp(),
         prixVu: prixOk ? prix : null,
         prixDate: prixOk ? serverTimestamp() : null,
@@ -2105,7 +2148,7 @@ document.getElementById('scan-confirm-btn').onclick = async () => {
     }
   } else if (scanCtx === 'detail'){
     const uniteArticle = prixUnite === 'kg' ? 'kg' : (prixUnite === 'l' ? 'L' : '');
-    await addDoc(collection(db,'users',UID,'listes',activeListeId,'articles'), {
+    await addDoc(collection(db,'households',HID,'listes',activeListeId,'articles'), {
       nom: scanLastProduct.nom, categorie: cat, quantite:1, unite:uniteArticle, coche:false,
       prix: prixOk ? prix : null,
       ...extra
@@ -2115,9 +2158,9 @@ document.getElementById('scan-confirm-btn').onclick = async () => {
     if(existingProd){
       const fields = {...extra};
       if(prixOk) Object.assign(fields, prixFields());
-      await updateDoc(doc(db,'users',UID,'catalogue',existingProd.id), fields);
+      await updateDoc(doc(db,'households',HID,'catalogue',existingProd.id), fields);
     } else {
-      await addDoc(collection(db,'users',UID,'catalogue'),{
+      await addDoc(collection(db,'households',HID,'catalogue'),{
         nom:scanLastProduct.nom, categorie:cat, createdAt:serverTimestamp(),
         prixVu: prixOk ? prix : null, prixDate: prixOk ? serverTimestamp() : null, prixUnite,
         prixParMagasin: (prixOk && magSel) ? {[magSel]: {prix, date: serverTimestamp()}} : {},
