@@ -156,6 +156,11 @@
   /* Profil avatar */
   .avatar{width:52px;height:52px;border-radius:14px;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:1.2rem;font-weight:800;color:#fff;font-family:var(--ff-serif)}
   .p-avatar-sm{width:34px;height:34px;border-radius:10px;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:.78rem;font-weight:800;color:#fff;font-family:var(--ff-serif);flex-shrink:0}
+  .account-choice{display:flex;align-items:center;gap:.9rem;padding:1rem;border:1.5px solid var(--border);border-radius:14px;margin-bottom:.9rem;cursor:pointer;transition:border-color .15s,box-shadow .15s;background:var(--surface)}
+  .account-choice:hover{border-color:var(--accent);box-shadow:0 2px 10px rgba(45,106,79,.12)}
+  .account-choice .avatar{background:var(--accent-light);color:var(--accent)}
+  .account-choice-title{font-weight:700;font-size:1.02rem;color:var(--text)}
+  .account-choice-sub{font-size:.82rem;color:var(--text2);margin-top:.1rem}
 
   /* Row */
   .frow{display:flex;gap:.5rem;align-items:flex-end;flex-wrap:wrap}
@@ -334,6 +339,16 @@ var Module=typeof Module!="undefined"?Module:{};var ENVIRONMENT_IS_WEB=!!globalT
   </div>
 </div>
 
+<!-- CHOIX DU COMPTE -->
+<div id="account-switch-screen" class="auth-wrap" style="display:none">
+  <div class="auth-card" style="max-width:420px;text-align:left">
+    <div style="width:36px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 1.6rem"></div>
+    <h1 style="font-family:var(--ff-serif);font-size:1.7rem;margin-bottom:.4rem">Quel compte ?</h1>
+    <p style="color:var(--text2);font-size:.9rem;margin-bottom:1.6rem">Vous avez accès à plusieurs comptes. Lequel voulez-vous utiliser ?</p>
+    <div id="account-switch-list"></div>
+  </div>
+</div>
+
 <!-- APP -->
 <div id="app-screen" style="display:none">
 
@@ -441,6 +456,8 @@ var Module=typeof Module!="undefined"?Module:{};var ENVIRONMENT_IS_WEB=!!globalT
     <div class="section-title" id="membres-list-title">Membres du foyer</div>
     <div class="card" id="membres-list"></div>
 
+    <div style="height:.5rem"></div>
+    <button class="btn btn-outline btn-full" id="switch-account-btn" style="padding:.75rem;display:none">🔀 Changer de compte</button>
     <div style="height:.5rem"></div>
     <button class="btn btn-danger btn-full" id="logout-btn" style="padding:.75rem">Se déconnecter</button>
   </div>
@@ -698,6 +715,7 @@ function getSecondaryAuth() {
 }
 
 let UID = null, HID = null, activeListeId = null;
+let dataRoot = 'households', dataId = null;
 let catalogue = [], listes = [], dossiers = [], articles = [];
 let magasins = [];
 let activeMagasinId = localStorage.getItem('activeMagasinId') || null;
@@ -800,7 +818,7 @@ window.goPage = function(page) {
 window.openDetail = function(listeId) {
   activeListeId = listeId;
   if(unsubArt) unsubArt();
-  unsubArt = onSnapshot(collection(db,'households',HID,'listes',listeId,'articles'), snap => {
+  unsubArt = onSnapshot(collection(db,dataRoot,dataId,'listes',listeId,'articles'), snap => {
     articles = snap.docs.map(d => ({id:d.id,...d.data()}));
     renderDetail();
   });
@@ -841,14 +859,14 @@ window.addProduit = async function() {
   const cat = document.getElementById('c-cat').value;
   if(!nom){toast('Entrez un nom');return;}
   if(catalogue.some(p => p.nom.toLowerCase() === nom.toLowerCase())){toast('Ce produit existe déjà');return;}
-  await addDoc(collection(db,'households',HID,'catalogue'),{nom,categorie:cat,createdAt:serverTimestamp()});
+  await addDoc(collection(db,dataRoot,dataId,'catalogue'),{nom,categorie:cat,createdAt:serverTimestamp()});
   document.getElementById('c-nom').value = '';
   toast('Produit ajouté');
 };
 
 window.delProduit = function(id, nom) {
   confirmAction('Supprimer',`Supprimer "${nom}" du catalogue ?`, async () => {
-    await deleteDoc(doc(db,'households',HID,'catalogue',id));
+    await deleteDoc(doc(db,dataRoot,dataId,'catalogue',id));
     selectedIds.delete(id);
     updateSelBar();
     toast('Produit supprimé');
@@ -869,7 +887,7 @@ window.openCatChangeModal = function(id) {
 document.getElementById('save-cat-change-modal').onclick = async () => {
   if(!catChangeProdId) return;
   const newCat = document.getElementById('cat-change-select').value;
-  await updateDoc(doc(db,'households',HID,'catalogue',catChangeProdId),{categorie:newCat});
+  await updateDoc(doc(db,dataRoot,dataId,'catalogue',catChangeProdId),{categorie:newCat});
   closeModal('cat-change-modal');
   toast('✅ Catégorie mise à jour');
 };
@@ -910,7 +928,7 @@ document.getElementById('prod-photo-input').addEventListener('change', async e =
   toast('Traitement de la photo…');
   try {
     const dataUrl = await resizeImageToDataUrl(file, 240, 0.7);
-    await updateDoc(doc(db,'households',HID,'catalogue',targetId),{imageUrl: dataUrl});
+    await updateDoc(doc(db,dataRoot,dataId,'catalogue',targetId),{imageUrl: dataUrl});
     toast('✅ Photo enregistrée');
   } catch(err) {
     console.error(err);
@@ -946,7 +964,7 @@ document.getElementById('save-prix-modal').onclick = async () => {
     fields.prixDate = serverTimestamp();
     if(activeMagasinId) fields['prixParMagasin.' + activeMagasinId] = { prix, date: serverTimestamp() };
   }
-  await updateDoc(doc(db,'households',HID,'catalogue',prixModalProdId), fields);
+  await updateDoc(doc(db,dataRoot,dataId,'catalogue',prixModalProdId), fields);
   closeModal('prix-modal');
   toast('✅ Prix enregistré');
 };
@@ -976,7 +994,7 @@ window.addSelectedToList = async function() {
 window.addToSpecificList = async function(listeId, listNom) {
   closeModal('listes-modal');
   const produits = catalogue.filter(p => selectedIds.has(p.id));
-  const snap = await getDocs(collection(db,'households',HID,'listes',listeId,'articles'));
+  const snap = await getDocs(collection(db,dataRoot,dataId,'listes',listeId,'articles'));
   const existing = new Set(snap.docs.map(d => d.data().nom));
   let added = 0;
   for(const p of produits){
@@ -985,7 +1003,7 @@ window.addToSpecificList = async function(listeId, listNom) {
       const prixMag = (activeMagasinId && p.prixParMagasin && p.prixParMagasin[activeMagasinId] && p.prixParMagasin[activeMagasinId].prix != null)
         ? p.prixParMagasin[activeMagasinId].prix : null;
       const prix = prixMag != null ? prixMag : (p.prixVu != null ? p.prixVu : null);
-      await addDoc(collection(db,'households',HID,'listes',listeId,'articles'),{nom:p.nom,categorie:p.categorie,quantite:1,unite,coche:false,prix});
+      await addDoc(collection(db,dataRoot,dataId,'listes',listeId,'articles'),{nom:p.nom,categorie:p.categorie,quantite:1,unite,coche:false,prix});
       added++;
     }
   }
@@ -998,14 +1016,14 @@ window.addFast = async function(e, id, nom, cat) {
   const active = listes.filter(l => l.statut === 'en_cours');
   if(!active.length){toast('Créez une liste d\'abord');return;}
   const liste = active[0];
-  const snap = await getDocs(collection(db,'households',HID,'listes',liste.id,'articles'));
+  const snap = await getDocs(collection(db,dataRoot,dataId,'listes',liste.id,'articles'));
   if(snap.docs.some(d => d.data().nom === nom)){toast('Déjà dans la liste');return;}
   const prod = catalogue.find(p => p.id === id);
   const unite = (prod && prod.prixUnite === 'kg') ? 'kg' : (prod && prod.prixUnite === 'l') ? 'L' : '';
   const prixMag = (prod && activeMagasinId && prod.prixParMagasin && prod.prixParMagasin[activeMagasinId] && prod.prixParMagasin[activeMagasinId].prix != null)
     ? prod.prixParMagasin[activeMagasinId].prix : null;
   const prix = prixMag != null ? prixMag : ((prod && prod.prixVu != null) ? prod.prixVu : null);
-  await addDoc(collection(db,'households',HID,'listes',liste.id,'articles'),{nom,categorie:cat,quantite:1,unite,coche:false,prix});
+  await addDoc(collection(db,dataRoot,dataId,'listes',liste.id,'articles'),{nom,categorie:cat,quantite:1,unite,coche:false,prix});
   toast(`"${nom}" ajouté`);
 };
 
@@ -1158,10 +1176,10 @@ document.getElementById('import-confirm-btn').onclick = async () => {
     if (existing) {
       const fields = {};
       if (r.prix != null && !isNaN(r.prix)) { fields.prixVu = r.prix; fields.prixDate = serverTimestamp(); }
-      if (Object.keys(fields).length) batch.update(doc(db,'households',HID,'catalogue',existing.id), fields);
+      if (Object.keys(fields).length) batch.update(doc(db,dataRoot,dataId,'catalogue',existing.id), fields);
       updated++;
     } else {
-      const ref = doc(collection(db,'households',HID,'catalogue'));
+      const ref = doc(collection(db,dataRoot,dataId,'catalogue'));
       batch.set(ref, {
         nom: r.nom.trim(), categorie: r.categorie, createdAt: serverTimestamp(),
         prixVu: (r.prix!=null && !isNaN(r.prix)) ? r.prix : null,
@@ -1184,14 +1202,14 @@ window.addListe = async function() {
   const nom = document.getElementById('i-liste').value.trim();
   const dossier = document.getElementById('i-liste-dossier').value;
   if(!nom){toast('Entrez un nom');return;}
-  const ref = await addDoc(collection(db,'households',HID,'listes'),{nom,dossier,statut:'en_cours',createdAt:serverTimestamp()});
+  const ref = await addDoc(collection(db,dataRoot,dataId,'listes'),{nom,dossier,statut:'en_cours',createdAt:serverTimestamp()});
   document.getElementById('i-liste').value = '';
   openDetail(ref.id);
 };
 
 window.toggleListeStatus = async function(id, current) {
   const newStatus = current === 'terminee' ? 'en_cours' : 'terminee';
-  await updateDoc(doc(db,'households',HID,'listes',id),{statut:newStatus});
+  await updateDoc(doc(db,dataRoot,dataId,'listes',id),{statut:newStatus});
   toast(newStatus === 'terminee' ? '✅ Courses terminées !' : '🔄 Liste réouverte');
   if(activeListeId === id) renderDetailHeader();
 };
@@ -1199,16 +1217,16 @@ window.toggleListeStatus = async function(id, current) {
 window.renommerListe = async function(id, oldName) {
   const newName = prompt('Nouveau nom :', oldName);
   if(!newName?.trim()) return;
-  await updateDoc(doc(db,'households',HID,'listes',id),{nom:newName.trim()});
+  await updateDoc(doc(db,dataRoot,dataId,'listes',id),{nom:newName.trim()});
 };
 
 window.supprimerListe = async function(id, nom) {
   confirmAction('Supprimer',`Supprimer "${nom}" définitivement ?`, async () => {
-    const articlesRef = collection(db,'households',HID,'listes',id,'articles');
+    const articlesRef = collection(db,dataRoot,dataId,'listes',id,'articles');
     const snap = await getDocs(articlesRef);
     const batch = writeBatch(db);
     snap.docs.forEach(d => batch.delete(d.ref));
-    batch.delete(doc(db,'households',HID,'listes',id));
+    batch.delete(doc(db,dataRoot,dataId,'listes',id));
     await batch.commit();
     if(activeListeId === id) closeDetail();
     toast('Liste supprimée');
@@ -1260,13 +1278,13 @@ window.addDossier = async function() {
   const nom = document.getElementById('i-dossier').value.trim();
   if(!nom){toast('Entrez un nom');return;}
   if(dossiers.some(d => d.nom === nom)){toast('Ce dossier existe déjà');return;}
-  await addDoc(collection(db,'households',HID,'dossiers'),{nom,createdAt:serverTimestamp()});
+  await addDoc(collection(db,dataRoot,dataId,'dossiers'),{nom,createdAt:serverTimestamp()});
   document.getElementById('i-dossier').value = '';
   toast(`Dossier "${nom}" créé`);
 };
 window.delDossier = async function(id, nom) {
   confirmAction('Supprimer',`Supprimer le dossier "${nom}" ?`, async () => {
-    await deleteDoc(doc(db,'households',HID,'dossiers',id));
+    await deleteDoc(doc(db,dataRoot,dataId,'dossiers',id));
   });
 };
 function updateDossierSelects() {
@@ -1296,25 +1314,25 @@ window.addCategory = async function() {
   if(!newName){toast('Entrez un nom');return;}
   if(categories.some(c => c.label === newName)){toast('Cette catégorie existe déjà');return;}
   const newId = 'cat_' + Date.now();
-  await addDoc(collection(db,'households',HID,'categories'),{id:newId,label:newName,createdAt:serverTimestamp()});
+  await addDoc(collection(db,dataRoot,dataId,'categories'),{id:newId,label:newName,createdAt:serverTimestamp()});
   document.getElementById('new-cat-name').value = '';
   toast('Catégorie ajoutée');
 };
 window.updateCategory = async function(catId, inputId) {
   const newLabel = document.getElementById(inputId).value.trim();
   if(!newLabel) return;
-  await updateDoc(doc(db,'households',HID,'categories',catId),{label:newLabel});
+  await updateDoc(doc(db,dataRoot,dataId,'categories',catId),{label:newLabel});
   toast('Catégorie modifiée');
 };
 window.deleteCategory = async function(catId) {
   confirmAction('Supprimer','Les produits de cette catégorie passeront en "Autre"', async () => {
-    await deleteDoc(doc(db,'households',HID,'categories',catId));
+    await deleteDoc(doc(db,dataRoot,dataId,'categories',catId));
     toast('Catégorie supprimée');
   });
 };
 function initCategoriesListener() {
   if(unsubCategories) unsubCategories();
-  unsubCategories = onSnapshot(collection(db,'households',HID,'categories'), snap => {
+  unsubCategories = onSnapshot(collection(db,dataRoot,dataId,'categories'), snap => {
     const userCats = snap.docs.map(d => ({id:d.data().id,label:d.data().label}));
     categories = [...DEFAULT_CATEGORIES];
     for(const uc of userCats) if(!DEFAULT_CATEGORIES.some(d => d.id === uc.id)) categories.push(uc);
@@ -1355,7 +1373,7 @@ window.addMagasin = async function() {
   const nom = document.getElementById('new-magasin-name').value.trim();
   if(!nom){toast('Entrez un nom de magasin');return;}
   if(magasins.some(m => m.nom.toLowerCase() === nom.toLowerCase())){toast('Ce magasin existe déjà');return;}
-  const ref = await addDoc(collection(db,'households',HID,'magasins'),{nom,createdAt:serverTimestamp()});
+  const ref = await addDoc(collection(db,dataRoot,dataId,'magasins'),{nom,createdAt:serverTimestamp()});
   document.getElementById('new-magasin-name').value = '';
   toast('Magasin ajouté');
   // Si c'est le premier magasin créé, on l'active automatiquement.
@@ -1374,7 +1392,7 @@ window.selectMagasin = function(id) {
 };
 window.deleteMagasin = async function(id, nom) {
   confirmAction('Supprimer', `Supprimer "${nom}" ? Les prix déjà enregistrés pour ce magasin resteront dans l'historique des produits mais ne seront plus modifiables depuis ce magasin.`, async () => {
-    await deleteDoc(doc(db,'households',HID,'magasins',id));
+    await deleteDoc(doc(db,dataRoot,dataId,'magasins',id));
     if(activeMagasinId === id){
       activeMagasinId = null;
       localStorage.removeItem('activeMagasinId');
@@ -1399,7 +1417,7 @@ function updateScanMagasinSelect() {
 }
 function initMagasinsListener() {
   if(unsubMagasins) unsubMagasins();
-  unsubMagasins = onSnapshot(collection(db,'households',HID,'magasins'), snap => {
+  unsubMagasins = onSnapshot(collection(db,dataRoot,dataId,'magasins'), snap => {
     magasins = snap.docs.map(d => ({id:d.id,...d.data()}));
     if(activeMagasinId && !magasins.some(m => m.id === activeMagasinId)){
       activeMagasinId = null;
@@ -1529,7 +1547,7 @@ window.addToCurrentList = async function(id, nom, cat) {
     ? prod.prixParMagasin[activeMagasinId].prix : null;
   const prix = prixMag != null ? prixMag : ((prod && prod.prixVu != null) ? prod.prixVu : null);
   const unite = (prod && prod.prixUnite === 'kg') ? 'kg' : (prod && prod.prixUnite === 'l') ? 'L' : '';
-  await addDoc(collection(db,'households',HID,'listes',activeListeId,'articles'),{nom,categorie:cat,quantite:1,unite,coche:false,prix});
+  await addDoc(collection(db,dataRoot,dataId,'listes',activeListeId,'articles'),{nom,categorie:cat,quantite:1,unite,coche:false,prix});
   toast(`"${nom}" ajouté`);
 };
 
@@ -1537,28 +1555,28 @@ window.addManualProduct = async function() {
   const nom = document.getElementById('d-man-nom').value.trim();
   const cat = document.getElementById('d-man-cat').value;
   if(!nom){toast('Entrez un nom');return;}
-  await addDoc(collection(db,'households',HID,'listes',activeListeId,'articles'),{nom,categorie:cat,quantite:1,unite:'',coche:false});
+  await addDoc(collection(db,dataRoot,dataId,'listes',activeListeId,'articles'),{nom,categorie:cat,quantite:1,unite:'',coche:false});
   document.getElementById('d-man-nom').value = '';
   toast(`"${nom}" ajouté`);
 };
 
 window.toggleCheck = async function(id, current) {
-  await updateDoc(doc(db,'households',HID,'listes',activeListeId,'articles',id),{coche:!current});
+  await updateDoc(doc(db,dataRoot,dataId,'listes',activeListeId,'articles',id),{coche:!current});
 };
 
 window.changeQuantity = async function(id, value) {
   let qty = parseFloat(value);
   if(isNaN(qty)||qty<0) qty = 0;
-  await updateDoc(doc(db,'households',HID,'listes',activeListeId,'articles',id),{quantite:qty});
+  await updateDoc(doc(db,dataRoot,dataId,'listes',activeListeId,'articles',id),{quantite:qty});
 };
 
 window.changeUnit = async function(id, unit) {
-  await updateDoc(doc(db,'households',HID,'listes',activeListeId,'articles',id),{unite:unit});
+  await updateDoc(doc(db,dataRoot,dataId,'listes',activeListeId,'articles',id),{unite:unit});
 };
 
 window.changePrix = async function(id, value) {
   const prix = value === '' ? null : parseFloat(value);
-  await updateDoc(doc(db,'households',HID,'listes',activeListeId,'articles',id),{prix: (prix==null||isNaN(prix)) ? null : prix});
+  await updateDoc(doc(db,dataRoot,dataId,'listes',activeListeId,'articles',id),{prix: (prix==null||isNaN(prix)) ? null : prix});
   // Mémorise ce prix comme "dernier prix connu" du produit dans le catalogue (et pour le magasin actif si défini),
   // pour préremplir la prochaine fois.
   if(prix!=null && !isNaN(prix)){
@@ -1568,7 +1586,7 @@ window.changePrix = async function(id, value) {
       if(prod){
         const fields = {prixVu: prix, prixDate: serverTimestamp()};
         if(activeMagasinId) fields['prixParMagasin.' + activeMagasinId] = {prix, date: serverTimestamp()};
-        await updateDoc(doc(db,'households',HID,'catalogue',prod.id),fields);
+        await updateDoc(doc(db,dataRoot,dataId,'catalogue',prod.id),fields);
       }
     }
   }
@@ -1576,7 +1594,7 @@ window.changePrix = async function(id, value) {
 
 window.deleteArticle = function(id, nom) {
   confirmAction('Retirer',`Retirer "${nom}" de la liste ?`, async () => {
-    await deleteDoc(doc(db,'households',HID,'listes',activeListeId,'articles',id));
+    await deleteDoc(doc(db,dataRoot,dataId,'listes',activeListeId,'articles',id));
   });
 };
 
@@ -1638,11 +1656,18 @@ function updateProfilUI() {
   // Masquer la section mot de passe pour les comptes Google
   const pwdSection = document.getElementById('pwd-section');
   if(pwdSection) pwdSection.style.display = isGoogle ? 'none' : '';
-  // Seul l'admin (compte Google, propriétaire du foyer) peut créer des membres
+  // Seul l'admin (compte Google, propriétaire du foyer) peut créer des membres, ou changer de compte
   const addCard = document.getElementById('membres-add-card');
   const addTitle = document.getElementById('membres-section-title');
   if(addCard) addCard.style.display = isGoogle ? '' : 'none';
   if(addTitle) addTitle.style.display = isGoogle ? '' : 'none';
+  const switchBtn = document.getElementById('switch-account-btn');
+  if(switchBtn){
+    switchBtn.style.display = isGoogle ? '' : 'none';
+    switchBtn.textContent = dataRoot === 'households'
+      ? '🔀 Passer sur mon compte personnel'
+      : '🔀 Passer sur le compte famille';
+  }
   renderMembresList();
 }
 
@@ -1753,27 +1778,27 @@ async function migrateLegacyUserData() {
 }
 
 async function initializeDefaultCatalogue() {
-  const snap = await getDocs(collection(db,'households',HID,'catalogue'));
+  const snap = await getDocs(collection(db,dataRoot,dataId,'catalogue'));
   if(snap.empty){
     toast('Chargement du catalogue…');
     for(const p of DEFAULT_PRODUITS)
-      await addDoc(collection(db,'households',HID,'catalogue'),{...p,createdAt:serverTimestamp()});
+      await addDoc(collection(db,dataRoot,dataId,'catalogue'),{...p,createdAt:serverTimestamp()});
     toast(`✅ ${DEFAULT_PRODUITS.length} produits chargés !`);
   }
 }
 
 function startListeners() {
-  unsubCat = onSnapshot(collection(db,'households',HID,'catalogue'), snap => {
+  unsubCat = onSnapshot(collection(db,dataRoot,dataId,'catalogue'), snap => {
     catalogue = snap.docs.map(d => ({id:d.id,...d.data()}));
     renderCatalogue();
     if(document.getElementById('add-body')?.style.display === 'block') renderAvailableProducts();
   });
-  unsubListes = onSnapshot(collection(db,'households',HID,'listes'), snap => {
+  unsubListes = onSnapshot(collection(db,dataRoot,dataId,'listes'), snap => {
     listes = snap.docs.map(d => ({id:d.id,...d.data()}));
     renderListes();
     if(activeListeId) renderDetailHeader();
   });
-  unsubDoss = onSnapshot(collection(db,'households',HID,'dossiers'), snap => {
+  unsubDoss = onSnapshot(collection(db,dataRoot,dataId,'dossiers'), snap => {
     dossiers = snap.docs.map(d => ({id:d.id,...d.data()}));
     updateDossierSelects();
   });
@@ -1847,8 +1872,9 @@ onAuthStateChanged(auth, async user => {
       HID = UID;
       await setDoc(doc(db,'households',HID), {adminUID: HID, updatedAt: serverTimestamp()}, {merge:true});
       await migrateLegacyUserData();
+      showAccountSwitch(user);
     } else {
-      // Un membre rejoint le foyer auquel l'admin l'a rattaché
+      // Un membre rejoint directement le foyer partagé auquel l'admin l'a rattaché
       try {
         const idxSnap = await getDoc(doc(db,'memberIndex',UID));
         HID = idxSnap.exists() ? idxSnap.data().householdId : UID;
@@ -1856,20 +1882,61 @@ onAuthStateChanged(auth, async user => {
       } catch(e) {
         HID = UID;
       }
+      dataRoot = 'households'; dataId = HID;
+      await enterApp();
     }
-    document.getElementById('auth-screen').style.display = 'none';
-    document.getElementById('app-screen').style.display = 'flex';
-    updateProfilUI();
-    startListeners();
-    await initializeDefaultCatalogue();
-    goPage('catalogue');
   } else {
     stopListeners();
-    UID = null; HID = null;
+    UID = null; HID = null; dataRoot = 'households'; dataId = null;
+    document.getElementById('account-switch-screen').style.display = 'none';
     document.getElementById('auth-screen').style.display = 'flex';
     document.getElementById('app-screen').style.display = 'none';
   }
 });
+
+function showAccountSwitch(user) {
+  document.getElementById('auth-screen').style.display = 'none';
+  document.getElementById('app-screen').style.display = 'none';
+  const nom = user.displayName || user.email?.split('@')[0] || 'Admin';
+  document.getElementById('account-switch-list').innerHTML = `
+    <div class="account-choice" onclick="selectAccount('perso')">
+      <div class="avatar">${nom.slice(0,2).toUpperCase()}</div>
+      <div><div class="account-choice-title">${nom}</div><div class="account-choice-sub">Mon compte (admin)</div></div>
+    </div>
+    <div class="account-choice" onclick="selectAccount('famille')">
+      <div class="avatar">CO</div>
+      <div><div class="account-choice-title">Compte famille</div><div class="account-choice-sub">Compte partagé</div></div>
+    </div>
+  `;
+  document.getElementById('account-switch-screen').style.display = 'flex';
+}
+
+window.selectAccount = async function(scope) {
+  if(scope === 'perso'){ dataRoot = 'users'; dataId = UID; }
+  else { dataRoot = 'households'; dataId = HID; }
+  document.getElementById('account-switch-screen').style.display = 'none';
+  await enterApp();
+};
+
+window.toggleAccountScope = async function() {
+  stopListeners();
+  if(dataRoot === 'households'){ dataRoot = 'users'; dataId = UID; }
+  else { dataRoot = 'households'; dataId = HID; }
+  await enterApp();
+};
+
+window.switchAccountScreen = function() {
+  stopListeners();
+  showAccountSwitch(auth.currentUser);
+};
+
+async function enterApp() {
+  document.getElementById('app-screen').style.display = 'flex';
+  updateProfilUI();
+  startListeners();
+  await initializeDefaultCatalogue();
+  goPage('catalogue');
+}
 
 // Events
 document.getElementById('add-produit-btn').onclick = () => window.addProduit();
@@ -1892,6 +1959,7 @@ document.getElementById('update-nom-btn').onclick = () => window.updateNom();
 document.getElementById('update-pwd-btn').onclick = () => window.updatePwd();
 document.getElementById('creer-membre-btn').onclick = () => window.creerMembre();
 document.getElementById('logout-btn').onclick = () => window.doLogout();
+document.getElementById('switch-account-btn').onclick = () => window.toggleAccountScope();
 
 updateAllCategorySelects();
 
@@ -2133,10 +2201,10 @@ document.getElementById('scan-confirm-btn').onclick = async () => {
       // même si aucun prix n'a été saisi cette fois-ci.
       const fields = {...extra};
       if(prixOk) Object.assign(fields, prixFields());
-      await updateDoc(doc(db,'households',HID,'catalogue',existingProd.id), fields);
+      await updateDoc(doc(db,dataRoot,dataId,'catalogue',existingProd.id), fields);
       toast('Ce produit existe déjà dans le catalogue (photo/prix mis à jour)');
     } else {
-      await addDoc(collection(db,'households',HID,'catalogue'), {
+      await addDoc(collection(db,dataRoot,dataId,'catalogue'), {
         nom: scanLastProduct.nom, categorie: cat, createdAt: serverTimestamp(),
         prixVu: prixOk ? prix : null,
         prixDate: prixOk ? serverTimestamp() : null,
@@ -2148,7 +2216,7 @@ document.getElementById('scan-confirm-btn').onclick = async () => {
     }
   } else if (scanCtx === 'detail'){
     const uniteArticle = prixUnite === 'kg' ? 'kg' : (prixUnite === 'l' ? 'L' : '');
-    await addDoc(collection(db,'households',HID,'listes',activeListeId,'articles'), {
+    await addDoc(collection(db,dataRoot,dataId,'listes',activeListeId,'articles'), {
       nom: scanLastProduct.nom, categorie: cat, quantite:1, unite:uniteArticle, coche:false,
       prix: prixOk ? prix : null,
       ...extra
@@ -2158,9 +2226,9 @@ document.getElementById('scan-confirm-btn').onclick = async () => {
     if(existingProd){
       const fields = {...extra};
       if(prixOk) Object.assign(fields, prixFields());
-      await updateDoc(doc(db,'households',HID,'catalogue',existingProd.id), fields);
+      await updateDoc(doc(db,dataRoot,dataId,'catalogue',existingProd.id), fields);
     } else {
-      await addDoc(collection(db,'households',HID,'catalogue'),{
+      await addDoc(collection(db,dataRoot,dataId,'catalogue'),{
         nom:scanLastProduct.nom, categorie:cat, createdAt:serverTimestamp(),
         prixVu: prixOk ? prix : null, prixDate: prixOk ? serverTimestamp() : null, prixUnite,
         prixParMagasin: (prixOk && magSel) ? {[magSel]: {prix, date: serverTimestamp()}} : {},
