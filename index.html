@@ -1340,7 +1340,7 @@ window.addCategory = async function() {
   if(!newName){toast('Entrez un nom');return;}
   if(categories.some(c => c.label === newName)){toast('Cette catégorie existe déjà');return;}
   const newId = 'cat_' + Date.now();
-  await addDoc(collection(db,'users',dataId,'categories'),{id:newId,label:newName,createdAt:serverTimestamp()});
+  await setDoc(doc(db,'users',dataId,'categories',newId), {id:newId,label:newName,createdAt:serverTimestamp()});
   document.getElementById('new-cat-name').value = '';
   toast('Catégorie ajoutée');
 };
@@ -1350,10 +1350,26 @@ window.deleteCategory = async function(catId) {
     toast('Catégorie supprimée');
   });
 };
+async function migrateCategoryIds() {
+  try {
+    const snap = await getDocs(collection(db,'users',dataId,'categories'));
+    for(const d of snap.docs){
+      const data = d.data();
+      if(data.id && data.id !== d.id){
+        // Document fantôme détecté (id interne ≠ id réel Firestore) : on répare sans toucher aux produits déjà classés
+        await setDoc(doc(db,'users',dataId,'categories',data.id), data, {merge:true});
+        await deleteDoc(doc(db,'users',dataId,'categories',d.id));
+      }
+    }
+  } catch(e) {
+    console.error('migrateCategoryIds error:', e);
+  }
+}
 function initCategoriesListener() {
   if(unsubCategories) unsubCategories();
+  migrateCategoryIds();
   unsubCategories = onSnapshot(collection(db,'users',dataId,'categories'), snap => {
-    const stored = new Map(snap.docs.map(d => [d.data().id, d.data().label]));
+    const stored = new Map(snap.docs.map(d => [d.id, d.data().label]));
     categories = DEFAULT_CATEGORIES.map(d => ({id: d.id, label: stored.has(d.id) ? stored.get(d.id) : d.label}));
     for(const [id, label] of stored){
       if(!DEFAULT_CATEGORIES.some(d => d.id === id)) categories.push({id, label});
