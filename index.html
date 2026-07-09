@@ -1325,8 +1325,13 @@ window.addCategory = async function() {
 window.updateCategory = async function(catId, inputId) {
   const newLabel = document.getElementById(inputId).value.trim();
   if(!newLabel) return;
-  await setDoc(doc(db,'users',dataId,'categories',catId), {id: catId, label: newLabel}, {merge: true});
-  toast('Catégorie modifiée');
+  try {
+    await setDoc(doc(db,'users',dataId,'categories',catId), {id: catId, label: newLabel}, {merge: true});
+    toast('✅ Catégorie modifiée');
+  } catch(e) {
+    console.error('updateCategory error:', e);
+    toast('❌ Échec : ' + (e.message || e.code || 'erreur inconnue'));
+  }
 };
 window.deleteCategory = async function(catId) {
   confirmAction('Supprimer','Les produits de cette catégorie passeront en "Autre"', async () => {
@@ -1345,6 +1350,11 @@ function initCategoriesListener() {
     updateAllCategorySelects();
     if(activeListeId) renderAvailableProducts();
     renderCatalogue();
+    const catModal = document.getElementById('categories-modal');
+    if(catModal && catModal.classList.contains('show')) renderCategoriesList();
+  }, err => {
+    console.error('Erreur écoute catégories:', err);
+    toast('⚠️ Impossible de charger les catégories (' + (err.code||'erreur') + ')');
   });
 }
 function updateAllCategorySelects() {
