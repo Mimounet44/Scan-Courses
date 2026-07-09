@@ -1302,17 +1302,39 @@ window.openCategoriesManager = function() {
   renderCategoriesList();
   openModal('categories-modal');
 };
+function escHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
 function renderCategoriesList() {
   document.getElementById('categories-list').innerHTML = categories.map(c => {
     const isDefault = DEFAULT_CATEGORIES.some(d => d.id === c.id);
-    const inputId = `edit-cat-${c.id.replace(/-/g,'_')}`;
-    return `<div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.5rem">
-      <input id="${inputId}" value="${c.label}" style="flex:1;padding:.45rem .7rem;font-size:.85rem">
-      <button class="btn btn-sm btn-outline" onclick="updateCategory('${c.id}','${inputId}')">✓</button>
-      ${!isDefault?`<button class="btn btn-sm btn-danger" onclick="deleteCategory('${c.id}')"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg></button>`:''}
+    return `<div class="cat-edit-row" data-cat-id="${escHtml(c.id)}" style="display:flex;align-items:center;gap:.5rem;margin-bottom:.5rem">
+      <input class="cat-edit-input" value="${escHtml(c.label)}" style="flex:1;padding:.45rem .7rem;font-size:.85rem">
+      <button class="btn btn-sm btn-outline cat-save-btn" type="button">✓</button>
+      ${!isDefault?`<button class="btn btn-sm btn-danger cat-del-btn" type="button"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg></button>`:''}
     </div>`;
   }).join('');
 }
+
+document.getElementById('categories-list').addEventListener('click', async e => {
+  const row = e.target.closest('.cat-edit-row');
+  if(!row) return;
+  const catId = row.dataset.catId;
+  if(e.target.closest('.cat-save-btn')){
+    const newLabel = row.querySelector('.cat-edit-input').value.trim();
+    if(!newLabel) return;
+    try {
+      await setDoc(doc(db,'users',dataId,'categories',catId), {id: catId, label: newLabel}, {merge: true});
+      const check = await getDoc(doc(db,'users',dataId,'categories',catId));
+      console.log('Catégorie après écriture :', check.exists() ? check.data() : '(doc introuvable)');
+      toast('✅ Catégorie modifiée');
+    } catch(err) {
+      console.error('updateCategory error:', err);
+      toast('❌ Échec : ' + (err.message || err.code || 'erreur inconnue'));
+    }
+  } else if(e.target.closest('.cat-del-btn')){
+    window.deleteCategory(catId);
+  }
+});
 window.addCategory = async function() {
   const newName = document.getElementById('new-cat-name').value.trim();
   if(!newName){toast('Entrez un nom');return;}
@@ -1321,17 +1343,6 @@ window.addCategory = async function() {
   await addDoc(collection(db,'users',dataId,'categories'),{id:newId,label:newName,createdAt:serverTimestamp()});
   document.getElementById('new-cat-name').value = '';
   toast('Catégorie ajoutée');
-};
-window.updateCategory = async function(catId, inputId) {
-  const newLabel = document.getElementById(inputId).value.trim();
-  if(!newLabel) return;
-  try {
-    await setDoc(doc(db,'users',dataId,'categories',catId), {id: catId, label: newLabel}, {merge: true});
-    toast('✅ Catégorie modifiée');
-  } catch(e) {
-    console.error('updateCategory error:', e);
-    toast('❌ Échec : ' + (e.message || e.code || 'erreur inconnue'));
-  }
 };
 window.deleteCategory = async function(catId) {
   confirmAction('Supprimer','Les produits de cette catégorie passeront en "Autre"', async () => {
