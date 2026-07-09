@@ -125,6 +125,7 @@
   .toast{position:fixed;bottom:calc(var(--nav-h) + 14px);left:50%;transform:translateX(-50%);background:var(--text);color:#fff;border-radius:40px;padding:.55rem 1.3rem;font-size:.82rem;font-weight:600;z-index:400;display:none;white-space:nowrap;box-shadow:0 4px 20px rgba(0,0,0,.2)}
 
   /* Auth */
+  .screen-layer{position:fixed;inset:0;overflow-y:auto;z-index:1;background:var(--bg)}
   .auth-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:1.5rem;background:var(--bg)}
   .auth-card{background:var(--surface);border:1.5px solid var(--border);border-radius:24px;padding:2rem;width:100%;max-width:400px;text-align:center;box-shadow:var(--shadow-lg)}
   .auth-logo{width:64px;height:64px;background:var(--accent);border-radius:18px;display:flex;align-items:center;justify-content:center;margin:0 auto 1.2rem;box-shadow:0 4px 16px rgba(45,106,79,.3)}
@@ -292,7 +293,7 @@ var Module=typeof Module!="undefined"?Module:{};var ENVIRONMENT_IS_WEB=!!globalT
 <body>
 
 <!-- AUTH -->
-<div id="auth-screen" class="auth-wrap">
+<div id="auth-screen" class="auth-wrap screen-layer">
   <div class="auth-card">
     <div class="auth-logo">
       <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
@@ -340,7 +341,7 @@ var Module=typeof Module!="undefined"?Module:{};var ENVIRONMENT_IS_WEB=!!globalT
 </div>
 
 <!-- CHOIX DU COMPTE -->
-<div id="account-switch-screen" class="auth-wrap" style="display:none">
+<div id="account-switch-screen" class="auth-wrap screen-layer" style="display:none">
   <div class="auth-card" style="max-width:420px;text-align:left">
     <div style="width:36px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 1.6rem"></div>
     <h1 style="font-family:var(--ff-serif);font-size:1.7rem;margin-bottom:.4rem">Quel compte ?</h1>
@@ -350,7 +351,7 @@ var Module=typeof Module!="undefined"?Module:{};var ENVIRONMENT_IS_WEB=!!globalT
 </div>
 
 <!-- APP -->
-<div id="app-screen" style="display:none">
+<div id="app-screen" class="screen-layer" style="display:none;flex-direction:column">
 
   <!-- CATALOGUE -->
   <div id="page-catalogue" class="page show">
