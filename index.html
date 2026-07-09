@@ -1305,9 +1305,11 @@ window.openCategoriesManager = function() {
 function renderCategoriesList() {
   document.getElementById('categories-list').innerHTML = categories.map(c => {
     const isDefault = DEFAULT_CATEGORIES.some(d => d.id === c.id);
+    const inputId = `edit-cat-${c.id.replace(/-/g,'_')}`;
     return `<div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.5rem">
-      <input id="edit-cat-${c.id.replace(/-/g,'_')}" value="${c.label}" style="flex:1;padding:.45rem .7rem;font-size:.85rem" ${isDefault?'disabled':''}>
-      ${!isDefault?`<button class="btn btn-sm btn-outline" onclick="updateCategory('${c.id}','edit-cat-${c.id.replace(/-/g,'_')}')">✓</button><button class="btn btn-sm btn-danger" onclick="deleteCategory('${c.id}')"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg></button>`:'<span style="font-size:.7rem;color:var(--text3);padding:.2rem .5rem">Par défaut</span>'}
+      <input id="${inputId}" value="${c.label}" style="flex:1;padding:.45rem .7rem;font-size:.85rem">
+      <button class="btn btn-sm btn-outline" onclick="updateCategory('${c.id}','${inputId}')">✓</button>
+      ${!isDefault?`<button class="btn btn-sm btn-danger" onclick="deleteCategory('${c.id}')"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg></button>`:''}
     </div>`;
   }).join('');
 }
@@ -1323,7 +1325,7 @@ window.addCategory = async function() {
 window.updateCategory = async function(catId, inputId) {
   const newLabel = document.getElementById(inputId).value.trim();
   if(!newLabel) return;
-  await updateDoc(doc(db,'users',dataId,'categories',catId),{label:newLabel});
+  await setDoc(doc(db,'users',dataId,'categories',catId), {id: catId, label: newLabel}, {merge: true});
   toast('Catégorie modifiée');
 };
 window.deleteCategory = async function(catId) {
@@ -1335,9 +1337,11 @@ window.deleteCategory = async function(catId) {
 function initCategoriesListener() {
   if(unsubCategories) unsubCategories();
   unsubCategories = onSnapshot(collection(db,'users',dataId,'categories'), snap => {
-    const userCats = snap.docs.map(d => ({id:d.data().id,label:d.data().label}));
-    categories = [...DEFAULT_CATEGORIES];
-    for(const uc of userCats) if(!DEFAULT_CATEGORIES.some(d => d.id === uc.id)) categories.push(uc);
+    const stored = new Map(snap.docs.map(d => [d.data().id, d.data().label]));
+    categories = DEFAULT_CATEGORIES.map(d => ({id: d.id, label: stored.has(d.id) ? stored.get(d.id) : d.label}));
+    for(const [id, label] of stored){
+      if(!DEFAULT_CATEGORIES.some(d => d.id === id)) categories.push({id, label});
+    }
     updateAllCategorySelects();
     if(activeListeId) renderAvailableProducts();
     renderCatalogue();
