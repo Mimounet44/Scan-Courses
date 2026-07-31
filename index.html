@@ -460,6 +460,8 @@ var Module=typeof Module!="undefined"?Module:{};var ENVIRONMENT_IS_WEB=!!globalT
     <div style="height:.5rem"></div>
     <button class="btn btn-outline btn-full" id="switch-account-btn" style="padding:.75rem;display:none">🔀 Changer de compte</button>
     <div style="height:.5rem"></div>
+    <button class="btn btn-outline btn-full" id="copy-liste-btn" style="padding:.75rem;display:none">📋 Copier une liste vers l'autre compte</button>
+    <div style="height:.5rem"></div>
     <button class="btn btn-danger btn-full" id="logout-btn" style="padding:.75rem">Se déconnecter</button>
   </div>
 
@@ -685,6 +687,18 @@ Yaourts nature x8 2,35 €" style="width:100%;padding:.7rem .9rem;border:1.5px s
   </div>
 </div>
 
+<div id="copy-liste-modal" class="overlay">
+  <div class="modal">
+    <div class="modal-drag"></div>
+    <div class="modal-title">Copier une liste</div>
+    <p style="color:var(--text2);font-size:.82rem;margin-bottom:1rem">Choisis une liste de "<strong id="copy-liste-source"></strong>" à copier vers "<strong id="copy-liste-dest"></strong>". Rien n'est supprimé côté source.</p>
+    <div id="copy-liste-list" style="max-height:340px;overflow-y:auto"></div>
+    <div style="margin-top:1rem">
+      <button class="btn btn-outline btn-full" id="close-copy-liste-modal">Fermer</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script type="module">
@@ -796,7 +810,7 @@ function confirmAction(title, msg, callback) {
 }
 
 // Fermer modal en cliquant l'overlay
-['categories-modal','confirm-modal','listes-modal','magasins-modal','prix-modal','cat-change-modal','import-modal'].forEach(id => {
+['categories-modal','confirm-modal','listes-modal','magasins-modal','prix-modal','cat-change-modal','import-modal','copy-liste-modal'].forEach(id => {
   document.getElementById(id).addEventListener('click', e => {
     if(e.target.id === id) closeModal(id);
   });
@@ -1711,6 +1725,8 @@ function updateProfilUI() {
       ? '🔀 Passer sur mon compte personnel'
       : '🔀 Passer sur le compte famille';
   }
+  const copyBtn = document.getElementById('copy-liste-btn');
+  if(copyBtn) copyBtn.style.display = isGoogle ? '' : 'none';
   renderMembresList();
 }
 
@@ -1783,6 +1799,50 @@ function renderMembresList() {
 window.doLogout = async function() {
   await signOut(auth);
   toast('👋 Déconnecté');
+};
+
+window.openCopyListeModal = function() {
+  if(!HID || dataId === UID && !HID){ toast('Compte famille indisponible'); return; }
+  const otherId = dataId === UID ? HID : UID;
+  document.getElementById('copy-liste-source').textContent = dataId === UID ? 'Mon compte' : 'Compte famille';
+  document.getElementById('copy-liste-dest').textContent = dataId === UID ? 'Compte famille' : 'Mon compte';
+  renderCopyListeList(otherId);
+  openModal('copy-liste-modal');
+};
+
+function renderCopyListeList(otherId) {
+  const el = document.getElementById('copy-liste-list');
+  if(!listes.length){
+    el.innerHTML = '<p style="font-size:.85rem;color:var(--text3);padding:1rem;text-align:center">Aucune liste à copier ici.</p>';
+    return;
+  }
+  el.innerHTML = listes.map(l => `
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:.6rem;padding:.55rem 0;border-bottom:1px solid var(--border)">
+      <span style="font-size:.88rem;font-weight:600;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${l.nom}</span>
+      <button class="btn btn-primary btn-sm" style="flex-shrink:0" onclick="copyListeToOther('${l.id}','${otherId}','${esc(l.nom)}',this)">Copier →</button>
+    </div>
+  `).join('');
+}
+
+window.copyListeToOther = async function(listeId, otherId, nom, btnEl) {
+  if(btnEl){ btnEl.disabled = true; btnEl.textContent = '…'; }
+  try {
+    const listeSnap = await getDoc(doc(db,'users',dataId,'listes',listeId));
+    if(!listeSnap.exists()){ toast('Liste introuvable'); return; }
+    await setDoc(doc(db,'users',otherId,'listes',listeId), listeSnap.data(), {merge:true});
+    const artSnap = await getDocs(collection(db,'users',dataId,'listes',listeId,'articles'));
+    if(artSnap.docs.length){
+      const batch = writeBatch(db);
+      artSnap.docs.forEach(a => batch.set(doc(db,'users',otherId,'listes',listeId,'articles',a.id), a.data(), {merge:true}));
+      await batch.commit();
+    }
+    toast(`✅ "${nom}" copiée (${artSnap.docs.length} article(s))`);
+    if(btnEl){ btnEl.textContent = '✓ Copié'; }
+  } catch(e) {
+    console.error('copyListeToOther error:', e);
+    toast('❌ Échec de la copie : ' + (e.message || e.code || 'erreur inconnue'));
+    if(btnEl){ btnEl.disabled = false; btnEl.textContent = 'Copier →'; }
+  }
 };
 
 // --- Init ---
@@ -2010,6 +2070,8 @@ document.getElementById('update-pwd-btn').onclick = () => window.updatePwd();
 document.getElementById('creer-membre-btn').onclick = () => window.creerMembre();
 document.getElementById('logout-btn').onclick = () => window.doLogout();
 document.getElementById('switch-account-btn').onclick = () => window.toggleAccountScope();
+document.getElementById('copy-liste-btn').onclick = () => window.openCopyListeModal();
+document.getElementById('close-copy-liste-modal').onclick = () => closeModal('copy-liste-modal');
 
 updateAllCategorySelects();
 
