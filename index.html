@@ -1683,10 +1683,14 @@ function renderDetail() {
   const isTerminee = liste?.statut === 'terminee';
   const units = ['','kg','g','L','cl','pièce(s)','boîte(s)','sachet(s)','bouteille(s)'];
   let html = '';
-  for(const cat of categories){
+  const catsWithItems = sortedCategories().filter(cat => articles.some(a => a.categorie === cat.id));
+  if(catsWithItems.length > 1){
+    html += `<div class="cat-quicknav">${catsWithItems.map(c => `<button type="button" onclick="jumpToCat('${c.id}')">${c.label}</button>`).join('')}</div>`;
+  }
+  for(const cat of catsWithItems){
     const items = articles.filter(a => a.categorie === cat.id).sort((a,b) => a.nom.localeCompare(b.nom, 'fr'));
     if(!items.length) continue;
-    html += `<div class="cat-header" style="padding:.5rem 0 .25rem"><span class="cat-label">${cat.label}</span><div class="cat-line"></div></div>`;
+    html += `<div class="cat-group" id="cat-group-${cat.id}"><div class="cat-header" style="padding:.5rem 0 .25rem"><span class="cat-label">${cat.label}</span><div class="cat-line"></div></div>`;
     for(const a of items){
       const unitOpts = units.map(u => `<option value="${u}" ${a.unite===u?'selected':''}>${u||'—'}</option>`).join('');
       const artImg = a.imageUrl || (catalogue.find(p => p.nom.toLowerCase() === a.nom.toLowerCase()) || {}).imageUrl;
@@ -1715,6 +1719,7 @@ function renderDetail() {
         </div>
       </div>`;
     }
+    html += `</div>`;
   }
   document.getElementById('detail-articles').innerHTML = html || '<div class="empty"><div class="empty-icon">🛒</div><p>Liste vide — ajoutez des produits !</p></div>';
   if(!isTerminee) renderAvailableProducts();
