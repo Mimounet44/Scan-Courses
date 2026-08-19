@@ -69,10 +69,14 @@
   .section-title{font-size:.67rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--text3);margin:.8rem 0 .45rem}
 
   /* Catalogue produits */
-  .cat-group{margin-bottom:.35rem}
+  .cat-group{margin-bottom:.35rem;scroll-margin-top:64px}
   .cat-header{padding:.6rem 0 .3rem;display:flex;align-items:center;gap:.6rem}
   .cat-label{font-size:.67rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--text3)}
   .cat-line{flex:1;height:1px;background:var(--border)}
+  .cat-quicknav{position:sticky;top:0;z-index:20;display:flex;gap:.4rem;overflow-x:auto;padding:.5rem .1rem;margin:0 -.1rem .6rem;background:var(--bg);-webkit-overflow-scrolling:touch;scrollbar-width:none}
+  .cat-quicknav::-webkit-scrollbar{display:none}
+  .cat-quicknav button{flex:none;font-size:.72rem;font-weight:600;padding:.35rem .7rem;border-radius:20px;background:var(--surface);border:1.5px solid var(--border);color:var(--text2);white-space:nowrap}
+  .cat-quicknav button:active{background:var(--accent-light);border-color:var(--accent2);color:var(--accent)}
   .prod-row{display:flex;align-items:center;gap:.6rem;padding:.45rem .6rem;border-radius:10px;transition:background .12s}
   .prod-row:hover{background:var(--surface2)}
   .prod-thumb{width:38px;height:38px;border-radius:8px;object-fit:contain;background:#fff;border:1px solid var(--border2);flex-shrink:0}
@@ -648,7 +652,10 @@ Yaourts nature x8 2,35 €" style="width:100%;padding:.7rem .9rem;border:1.5px s
       <button class="btn btn-outline btn-icon" id="scan-torch-btn" style="display:none;flex:none" title="Torche">💡</button>
     </div>
 
-    <input id="scan-manual-ean" placeholder="Ou saisir un code-barres (EAN)" inputmode="numeric" style="margin-top:.6rem">
+    <div style="display:flex;gap:.5rem;margin-top:.6rem">
+      <input id="scan-manual-ean" placeholder="Ou saisir un code-barres (EAN)" inputmode="numeric" pattern="[0-9]*" style="flex:1">
+      <button class="btn btn-primary" id="scan-manual-validate-btn" type="button" style="flex:none">Valider</button>
+    </div>
 
     <div id="scan-status" style="font-size:.82rem;color:var(--text2);margin-top:.6rem;min-height:1.2em"></div>
 
@@ -1043,6 +1050,14 @@ window.addFast = async function(e, id, nom, cat) {
   toast(`"${nom}" ajouté`);
 };
 
+// Tri alphabétique des catégories, en ignorant l'emoji en tête du libellé
+function catSortLabel(cat) {
+  return cat.label.replace(/^[^\p{L}]+/u, '').trim();
+}
+function sortedCategories() {
+  return [...categories].sort((a, b) => catSortLabel(a).localeCompare(catSortLabel(b), 'fr'));
+}
+
 function renderCatalogue() {
   const search = document.getElementById('c-search')?.value.toLowerCase() || '';
   const filtered = catalogue.filter(p => p.nom.toLowerCase().includes(search));
@@ -1050,11 +1065,15 @@ function renderCatalogue() {
     document.getElementById('cat-list').innerHTML = '<div class="empty"><div class="empty-icon">🔍</div><p>Aucun produit trouvé</p></div>';
     return;
   }
+  const catsWithItems = sortedCategories().filter(cat => filtered.some(p => p.categorie === cat.id));
   let html = '';
-  for(const cat of categories){
+  if(catsWithItems.length > 1){
+    html += `<div class="cat-quicknav">${catsWithItems.map(c => `<button type="button" onclick="jumpToCat('${c.id}')">${c.label}</button>`).join('')}</div>`;
+  }
+  for(const cat of catsWithItems){
     const items = filtered.filter(p => p.categorie === cat.id).sort((a,b) => a.nom.localeCompare(b.nom, 'fr'));
     if(!items.length) continue;
-    html += `<div class="cat-group"><div class="cat-header"><span class="cat-label">${cat.label}</span><div class="cat-line"></div></div>`;
+    html += `<div class="cat-group" id="cat-group-${cat.id}"><div class="cat-header"><span class="cat-label">${cat.label}</span><div class="cat-line"></div></div>`;
     for(const p of items){
       const isSel = selectedIds.has(p.id);
       const prixMagasin = (activeMagasinId && p.prixParMagasin && p.prixParMagasin[activeMagasinId] && p.prixParMagasin[activeMagasinId].prix != null)
@@ -1087,6 +1106,9 @@ function renderCatalogue() {
   }
   document.getElementById('cat-list').innerHTML = html;
 }
+window.jumpToCat = function(id) {
+  document.getElementById('cat-group-' + id)?.scrollIntoView({behavior:'smooth', block:'start'});
+};
 
 // --- Import rapide ---
 let importRows = [];
@@ -2182,10 +2204,15 @@ scanTorchBtn.onclick = async () => {
   }
 };
 
+function submitManualEan(){
+  const val = document.getElementById('scan-manual-ean').value.trim();
+  if (val) onScanDetected(val);
+}
+document.getElementById('scan-manual-validate-btn').addEventListener('click', submitManualEan);
 document.getElementById('scan-manual-ean').addEventListener('keydown', e => {
   if (e.key === 'Enter'){
-    const val = e.target.value.trim();
-    if (val) onScanDetected(val);
+    e.preventDefault();
+    submitManualEan();
   }
 });
 
